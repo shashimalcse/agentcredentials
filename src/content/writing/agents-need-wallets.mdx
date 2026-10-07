@@ -1,0 +1,36 @@
+---
+title: Agents need wallets, not API keys
+description: Handing an agent a long-lived secret is the default today. It is also the wrong one.
+kind: Essay
+date: 2026-10-07
+draft: true
+---
+
+When we want an agent to book a flight or file an expense, we give it a key. The key goes into a config file, then into the agent's context, then, sometimes, into a log or a prompt we never meant to share. The key can do everything the person can do, for as long as it lives.
+
+That is not delegation. It is impersonation with extra steps.
+
+## What a wallet changes
+
+A credential wallet already knows how to hold signed claims about a person and reveal only the ones a verifier needs. If the agent can ask the wallet to act, rather than carry the secret itself, three things change at once.
+
+1. The secret never enters the model's context.
+2. Each request discloses the minimum, not everything.
+3. Policy lives with the person, not with the agent vendor.
+
+> The agent should express intent. The wallet should hold the authority.
+
+## What it looks like on the wire
+
+With a wallet in the loop, the agent forwards the verifier's request and gets back a result, not a credential. The verifier receives:
+
+```json
+{
+  "org": "Example Corp",
+  "address": { "country": "LK" }
+}
+```
+
+Everything else in the credential stays sealed. The agent never saw any of it.
+
+{/* TODO: continue the essay, then set draft: false. */}

@@ -1,0 +1,812 @@
+---
+import { story, at, approvedAt, type StepKind } from '../data/story';
+
+const range = (from: string, to: string) => `${at(from)}-${at(to)}`;
+/** The agent talks to its wallet over A2WP while accepting the credential and while answering each verifier. */
+const a2wpActive = [range('a2wp-issue', 'issued'), range('a2wp-store', 'present-store'), range('a2wp-flights', 'present-flights')].join(',');
+
+const stepIcon: Record<StepKind, string> = {
+  a2wp: 'M4 7h16v11H4zM15 12.5h2M4 7l2-3h12l2 3',
+  issue: 'M12 4v11m0 0l-4-4m4 4l4-4M5 20h14',
+  delegate: 'M5 12h11m0 0l-4-4m4 4l-4 4M19 5v14',
+  ask: 'M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14m0 3.5v.01',
+  present: 'M7 17L17 7m0 0H9m8 0v8',
+  verified: 'M5 12l5 5 9-10',
+};
+
+const last = story.length - 1;
+---
+
+<!--
+  The flow demo. Ada and her agent. Left: the conversation, steps included. Right: Ada's wallet, the issuer,
+  the agent's wallet and the checks services made. Ships fully played out for no-JS and reduced motion.
+-->
+<figure class="demo" data-demo data-last={last}>
+  <!-- Chat -->
+  <div class="chat">
+    <header class="chat__head">
+      <span class="avatar" aria-hidden="true">A</span>
+      <span class="chat__who">
+        <b>Acme assistant</b>
+        <span>Ada's personal agent</span>
+      </span>
+      <button type="button" class="chat__replay" data-replay>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+        Replay
+      </button>
+    </header>
+
+    <ol class="chat__log" data-log>
+      {
+        story.map((e, i) => {
+          if (e.kind === 'approve') return <li class="marker is-on" data-i={i} aria-hidden="true" />;
+          if (e.kind === 'agent')
+            return (
+              <li class="msg msg--agent is-on" data-i={i}>
+                {e.text}
+              </li>
+            );
+          if (e.kind === 'user')
+            return (
+              <li class="msg msg--user is-on" data-i={i} data-text={e.text}>
+                {e.text}
+              </li>
+            );
+          if (e.kind === 'approval')
+            return (
+              <li class="msg approval is-on is-approved" data-i={i} data-approved-at={approvedAt(e.id)}>
+                <p class="approval__source">
+                  <svg width="13" height="13" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="2" y="5" width="18" height="12" rx="2.5" /><circle cx="7.5" cy="11" r="2" /></svg>
+                  {e.source} · approval needed
+                </p>
+                <p class="approval__title">{e.title}</p>
+                <ul class="approval__details">
+                  {e.details.map((d) => (
+                    <li>{d}</li>
+                  ))}
+                </ul>
+                <div class="approval__actions">
+                  <span class="approval__btn">Approve</span>
+                  <span class="approval__done">✓ Approved by Ada</span>
+                </div>
+              </li>
+            );
+          return (
+            <li class:list={['msg', 'step', `step--${e.step}`, 'is-on']} data-i={i}>
+              <span class="step__icon" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d={stepIcon[e.step]} /></svg>
+              </span>
+              <span>
+                <span class="step__text">{e.text}</span>
+                {e.sub && <span class="step__sub">{e.sub}</span>}
+              </span>
+            </li>
+          );
+        })
+      }
+    </ol>
+
+    <div class="chat__input" aria-hidden="true">
+      <span class="chat__typed" data-typed>Message your agent…</span>
+      <span class="chat__send">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </div>
+  </div>
+
+  <!-- Wallets -->
+  <div class="side">
+    <div class="sources">
+      <section class="box fx is-on" data-active={range('delegation', 'delegated')} aria-label="Ada's wallet">
+        <p class="box__label">Ada's wallet</p>
+        <div class="cred cred--teal fx is-on" data-active={range('delegation', 'delegated')}>
+          <span>Age</span><span class="cred__by">Gov ID</span>
+        </div>
+        <div class="cred cred--cobalt">
+          <span>Employee</span><span class="cred__by">Example Corp</span>
+        </div>
+      </section>
+      <section class="box box--issuer fx is-on" data-active={range('activate', 'issued')} aria-label="Issuer: Acme AI">
+        <p class="box__label">Issuer</p>
+        <p class="issuer__name">Acme AI</p>
+        <p class="issuer__note">makes and runs the agent</p>
+      </section>
+    </div>
+
+    <div class="flows" aria-hidden="true">
+      <div class="flow flow--delegate fx is-on" data-active={range('delegated', 'delegated')}>
+        <span class="flow__line"></span>
+        <span class="flow__label">delegates <b>dSD-JWT</b></span>
+      </div>
+      <div class="flow flow--issue fx is-on" data-active={range('issued', 'issued')}>
+        <span class="flow__line"></span>
+        <span class="flow__label">issues <b>OpenID4VCI</b></span>
+      </div>
+    </div>
+
+    <section class="agentwallet" aria-label="Agent wallet">
+      <div class="a2wp fx is-on" data-active={a2wpActive} aria-hidden="true">
+        <span class="a2wp__line"></span>
+        <span class="a2wp__label">A2WP</span>
+      </div>
+      <p class="agentwallet__label">
+        <span class="avatar avatar--sm" aria-hidden="true">A</span>
+        Agent wallet
+      </p>
+      <div class="slots">
+        <div class="slot">
+          <p class="slot__kind">Delegated by Ada</p>
+          <div class="slot__empty">empty</div>
+          <div class="cred cred--teal slot__cred fx is-on" data-on={at('delegated')} data-active={range('ask-store', 'verified-store')}>
+            <span>age_over_18</span><span class="cred__by">expires 6 Nov</span>
+          </div>
+        </div>
+        <div class="slot">
+          <p class="slot__kind">Agent's own</p>
+          <div class="slot__empty">empty</div>
+          <div class="cred cred--violet slot__cred fx is-on" data-on={at('issued')} data-active={range('ask-flights', 'verified-flights')}>
+            <span>Verified agent</span><span class="cred__by">Acme AI</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="flows flows--down" aria-hidden="true">
+      <div class="flow flow--present fx is-on" data-active={range('present-store', 'verified-store')}>
+        <span class="flow__line"></span>
+        <span class="flow__label">presents <b>OpenID4VP</b></span>
+      </div>
+      <div class="flow flow--present fx is-on" data-active={range('present-flights', 'verified-flights')}>
+        <span class="flow__line"></span>
+        <span class="flow__label">presents <b>OpenID4VP</b></span>
+      </div>
+    </div>
+
+    <div class="verifiers">
+      <section class="box verifier fx is-on" data-active={range('ask-store', 'verified-store')} aria-label="Verifier: store.example">
+        <p class="box__label">Verifier</p>
+        <p class="verifier__name">store.example</p>
+        <p class="verifier__ask fx is-on" data-on={at('ask-store')}>Is the buyer over 18?</p>
+        <p class="verifier__ok fx is-on" data-on={at('verified-store')}>
+          <span class="check" aria-hidden="true">✓</span> Delegated credential verified
+        </p>
+      </section>
+      <section class="box verifier fx is-on" data-active={range('ask-flights', 'verified-flights')} aria-label="Verifier: flights.example">
+        <p class="box__label">Verifier</p>
+        <p class="verifier__name">flights.example</p>
+        <p class="verifier__ask fx is-on" data-on={at('ask-flights')}>Is this a verified agent?</p>
+        <p class="verifier__ok fx is-on" data-on={at('verified-flights')}>
+          <span class="check" aria-hidden="true">✓</span> Agent credential verified
+        </p>
+      </section>
+    </div>
+  </div>
+
+  <figcaption class="visually-hidden">
+    Ada approves her new agent, and Acme AI issues it a Verified agent credential. When she asks it to order wine, she
+    approves a delegation from her own wallet, so the agent can prove only that she is over 18. The store checks the
+    delegated credential; a flight site checks the agent's own credential.
+  </figcaption>
+</figure>
+
+<script>
+  import { mountDemo } from '../scripts/flow-demo';
+
+  document.querySelectorAll<HTMLElement>('[data-demo]').forEach((el) => mountDemo(el));
+</script>
+
+<style>
+  .demo {
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 64px;
+    align-items: stretch;
+  }
+
+  /* Chat -------------------------------------------------------------------- */
+  .chat {
+    display: flex;
+    flex-direction: column;
+    height: 580px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 30px 60px rgb(10 10 11 / 0.08);
+    overflow: hidden;
+  }
+  .chat__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .avatar {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border-radius: 99px;
+    background: var(--violet);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .avatar--sm {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+  .chat__who {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    font-size: 14px;
+  }
+  .chat__who span {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .chat__replay {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #d9d9de;
+    border-radius: 999px;
+    background: #fff;
+    font: inherit;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .chat__replay:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .chat__log {
+    flex: 1;
+    list-style: none;
+    margin: 0;
+    padding: 20px 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+  .msg:not(.is-on),
+  .marker {
+    display: none;
+  }
+  .msg.is-new {
+    animation: rise 0.35s ease;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .msg--agent,
+  .msg--user {
+    max-width: 80%;
+    padding: 10px 14px;
+    font-size: 14.5px;
+    line-height: 1.45;
+  }
+  .msg--agent {
+    align-self: flex-start;
+    background: #f3f3f5;
+    border-radius: 16px 16px 16px 4px;
+  }
+  .msg--user {
+    align-self: flex-end;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 16px 16px 4px 16px;
+  }
+
+  /* Approval card */
+  .approval {
+    align-self: flex-start;
+    width: min(340px, 90%);
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 10px 24px rgb(10 10 11 / 0.06);
+  }
+  .approval__source {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .approval__title {
+    margin: 6px 0 8px;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .approval__details {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+  }
+  .approval__details li::before {
+    content: '· ';
+    color: var(--muted);
+  }
+  .approval__actions {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+  }
+  .approval__btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    transition: transform 0.15s ease;
+  }
+  .approval.is-pressing .approval__btn {
+    transform: scale(0.94);
+  }
+  .approval__done {
+    display: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal-ink);
+  }
+  .approval.is-approved .approval__btn {
+    display: none;
+  }
+  .approval.is-approved .approval__done {
+    display: inline;
+  }
+
+  /* Step card: what the agent and wallets are doing */
+  .step {
+    align-self: flex-start;
+    max-width: 88%;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 12px 8px 8px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .step__icon {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: var(--muted);
+  }
+  .step--a2wp .step__icon {
+    background: var(--ink);
+  }
+  .step--issue .step__icon {
+    background: var(--violet);
+  }
+  .step--delegate .step__icon {
+    background: var(--teal);
+  }
+  .step--present .step__icon {
+    background: var(--cobalt);
+  }
+  .step--verified {
+    background: var(--teal-tint);
+    border-color: transparent;
+  }
+  .step--verified .step__icon {
+    background: var(--teal);
+  }
+  .step__sub {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .chat__input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 14px 14px;
+    padding: 6px 6px 6px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 14px;
+  }
+  .chat__typed {
+    flex: 1;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chat__typed.is-typing {
+    color: var(--ink);
+  }
+  .chat__send {
+    width: 32px;
+    height: 32px;
+    border-radius: 99px;
+    background: #e7e7ea;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+  }
+  .chat__typed.is-typing + .chat__send {
+    background: var(--ink);
+  }
+
+  /* Side: wallets ----------------------------------------------------------- */
+  .side {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+  .fx {
+    transition:
+      opacity 0.4s ease,
+      box-shadow 0.4s ease,
+      border-color 0.4s ease,
+      transform 0.4s ease;
+  }
+  .box__label,
+  .agentwallet__label,
+  .slot__kind {
+    margin: 0 0 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .sources {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .box {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+  }
+  .box.is-active {
+    border-color: var(--hue, var(--teal));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--hue, var(--teal)) 18%, transparent);
+  }
+  .box--issuer {
+    --hue: var(--violet);
+  }
+  .issuer__name {
+    margin: 0;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .issuer__note {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .cred {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: var(--hue);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .cred + .cred {
+    margin-top: 6px;
+  }
+  .cred__by {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.85;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cred--teal {
+    --hue: var(--teal);
+  }
+  .cred--cobalt {
+    --hue: var(--cobalt);
+  }
+  .cred--violet {
+    --hue: var(--violet);
+  }
+  .cred.is-active {
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 4px var(--hue);
+  }
+  .box .cred--cobalt {
+    opacity: 0.5;
+  }
+
+  .flows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    flex: 1 0 64px;
+  }
+  .flow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .flow__line {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 50%;
+    width: 0;
+    border-left: 1.5px dashed #c8c8d0;
+  }
+  .flow__line::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: -5.5px;
+    border: 5px solid transparent;
+    border-top-color: #c8c8d0;
+    border-bottom-width: 0;
+    border-top-width: 6px;
+  }
+  .flow__label {
+    position: relative;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .flow__label b {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .flow--delegate {
+    --hue: var(--teal);
+  }
+  .flow--issue {
+    --hue: var(--violet);
+  }
+  .flow.is-active .flow__line {
+    border-left: 2px solid var(--hue);
+  }
+  .flow.is-active .flow__line::after {
+    border-top-color: var(--hue);
+  }
+  .flow.is-active .flow__label {
+    border-color: var(--hue);
+    color: var(--ink);
+  }
+
+  .agentwallet {
+    position: relative;
+    padding: 14px;
+    border-radius: 18px;
+    background: #111114;
+  }
+  .agentwallet__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #c8c8d0;
+  }
+  /* Agent ⇄ wallet link, drawn across the gap between the chat and the wallet panel. */
+  .a2wp {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    width: 64px;
+    height: 0;
+  }
+  .a2wp__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    border-top: 1.5px dashed #c8c8d0;
+  }
+  .a2wp__line::before,
+  .a2wp__line::after {
+    content: '';
+    position: absolute;
+    top: -5.5px;
+    border: 5px solid transparent;
+  }
+  .a2wp__line::before {
+    left: -2px;
+    border-right-color: #c8c8d0;
+    border-left-width: 0;
+  }
+  .a2wp__line::after {
+    right: -2px;
+    border-left-color: #c8c8d0;
+    border-right-width: 0;
+  }
+  .a2wp__label {
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .a2wp.is-active .a2wp__line {
+    border-top: 2px solid var(--ink);
+  }
+  .a2wp.is-active .a2wp__line::before {
+    border-right-color: var(--ink);
+  }
+  .a2wp.is-active .a2wp__line::after {
+    border-left-color: var(--ink);
+  }
+  .a2wp.is-active .a2wp__label {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .slots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .slot {
+    position: relative;
+    min-width: 0;
+  }
+  .slot__kind {
+    margin-bottom: 6px;
+    font-size: 10px;
+    color: #8b8b94;
+  }
+  .slot__empty {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px dashed #3a3a42;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #6b6b74;
+  }
+  .slot__cred {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  .slot__cred:not(.is-on) {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+  }
+  .slot__cred.is-active {
+    box-shadow:
+      0 0 0 2px #111114,
+      0 0 0 4px var(--hue);
+  }
+
+  .flow--present {
+    --hue: var(--cobalt);
+  }
+  .verifiers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .verifier {
+    --hue: var(--cobalt);
+    min-height: 120px;
+  }
+  .verifier__name {
+    margin: 0;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .verifier__ask {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .verifier__ok {
+    margin: 8px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--teal-ink);
+  }
+  .verifier__ask:not(.is-on),
+  .verifier__ok:not(.is-on) {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  .check {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    border-radius: 99px;
+    background: var(--teal);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 900px) {
+    .demo {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+    }
+    .a2wp {
+      display: none;
+    }
+    .chat {
+      height: 520px;
+    }
+    .flows {
+      flex-basis: 56px;
+    }
+  }
+</style>

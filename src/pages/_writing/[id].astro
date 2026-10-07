@@ -1,0 +1,24 @@
+---
+import { render } from 'astro:content';
+import Article from '../../layouts/Article.astro';
+import { getWriting } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const entries = await getWriting();
+  return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Article
+  title={entry.data.title}
+  description={entry.data.description}
+  eyebrow={entry.data.kind}
+  back={{ href: '/writing/', label: 'Writing' }}
+  date={entry.data.date}
+  draft={entry.data.draft}
+>
+  <Content />
+</Article>

@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import EntryList from '../../components/EntryList.astro';
+import { formatDate, getWriting } from '../../lib/content';
+
+const entries = (await getWriting()).map((e) => ({
+  href: `/writing/${e.id}/`,
+  tag: e.data.kind,
+  title: e.data.title,
+  description: e.data.description,
+  meta: formatDate(e.data.date),
+  draft: e.data.draft,
+}));
+---
+
+<Base title="Writing" description="Essays and notes on verifiable credentials for AI agents.">
+  <PageHead
+    slot="top"
+    eyebrow="Writing"
+    title="Essays and notes"
+    lede="Opinions, comparisons and lessons from building credential systems for agents."
+  />
+  <section class="container list">
+    <EntryList entries={entries} empty="The first essays are on their way. Follow along via RSS." />
+  </section>
+</Base>
+
+<style>
+  .list {
+    padding-bottom: 112px;
+  }
+</style>

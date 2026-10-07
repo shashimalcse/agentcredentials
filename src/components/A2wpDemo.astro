@@ -1,0 +1,590 @@
+---
+import { flows } from '../data/a2wp';
+
+const first = flows[0];
+const last = first.steps[first.steps.length - 1];
+---
+
+<!--
+  A2WP as one diagram: agent ⇄ wallet over A2WP, wallet ⇄ issuer / verifier over OpenID4VCI / OpenID4VP.
+  Each step lights up the parts involved and shows its message on the arrow it travels along;
+  a caption explains it. Ships showing the finished Acquire flow for no-JS and reduced motion.
+-->
+<figure class="a2" data-a2wp-demo>
+  <div class="bar">
+    <div class="tabs" role="group" aria-label="Choose an operation" data-tabs hidden>
+      {
+        flows.map((f) => (
+          <button type="button" data-pick={f.id} aria-pressed={f === first ? 'true' : 'false'}>
+            {f.name}
+          </button>
+        ))
+      }
+    </div>
+    <button type="button" class="replay" data-replay hidden>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+      Replay
+    </button>
+  </div>
+
+  <div class="stage">
+    <div class="diagram">
+      <div class="link link--offer" data-part="offer" data-edge="offer" aria-hidden="true">
+        <span class="link__seg link__seg--start"></span>
+        <span class="link__seg link__seg--mid">
+          <span class="link__label">offer link</span>
+          <span class="edge__msg" data-msg></span>
+        </span>
+        <span class="link__seg link__seg--end"></span>
+      </div>
+
+      <section class="box box--agent" data-part="agent" aria-label="Agent">
+        <span class="avatar" aria-hidden="true">A</span>
+        <b>Agent</b>
+        <span class="box__note">states intent only</span>
+      </section>
+
+      <div class="edge edge--a2wp" data-part="a2wp" data-edge="a2wp" aria-hidden="true">
+        <span class="edge__msg" data-msg></span>
+        <span class="edge__line"></span>
+        <span class="edge__proto">A2WP</span>
+      </div>
+
+      <section class="wallet" data-part="wallet" aria-label="Wallet">
+        <p class="wallet__label">Wallet</p>
+        <div class="wallet__row">
+          <span class="wallet__chip">policy</span>
+          <span class="wallet__chip">keys</span>
+        </div>
+        <div class="slot">
+          <div class="slot__empty">no credential yet</div>
+          <div class="slot__cred is-on" data-slot><span>Membership</span><span class="slot__by">SD-JWT VC</span></div>
+        </div>
+      </section>
+
+      <div class="edge edge--vci" data-part="vci" data-edge="vci" aria-hidden="true">
+        <span class="edge__msg" data-msg></span>
+        <span class="edge__line"></span>
+        <span class="edge__proto">OpenID4VCI</span>
+      </div>
+      <div class="edge edge--vp" data-part="vp" data-edge="vp" aria-hidden="true">
+        <span class="edge__msg" data-msg></span>
+        <span class="edge__line"></span>
+        <span class="edge__proto">OpenID4VP</span>
+      </div>
+
+      <section class="box box--issuer" data-part="issuer" aria-label="Issuer">
+        <b>Issuer</b>
+        <span class="box__note">issuer.example</span>
+      </section>
+      <section class="box box--verifier" data-part="verifier" aria-label="Verifier">
+        <b>Verifier</b>
+        <span class="box__note">verifier.example</span>
+      </section>
+
+      <div class="link link--req" data-part="req" data-edge="req" aria-hidden="true">
+        <span class="link__seg link__seg--start"></span>
+        <span class="link__seg link__seg--mid">
+          <span class="link__label">request link</span>
+          <span class="edge__msg" data-msg></span>
+        </span>
+        <span class="link__seg link__seg--end"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption" aria-live="polite">
+    <p class="caption__count" data-count>Step {first.steps.length} of {first.steps.length}</p>
+    <div class="caption__body">
+      <p class="caption__text" data-text>{last.text}</p>
+      <p class="caption__sub" data-sub>{last.sub}</p>
+    </div>
+    <ol class="progress" data-progress aria-hidden="true">
+      {first.steps.map(() => <li class="is-on" />)}
+    </ol>
+  </div>
+
+  <script type="application/json" data-flows set:html={JSON.stringify(flows)} />
+</figure>
+
+<script>
+  import { mountA2wpDemo } from '../scripts/a2wp-demo';
+
+  document.querySelectorAll<HTMLElement>('[data-a2wp-demo]').forEach((el) => mountA2wpDemo(el));
+</script>
+
+<style>
+  .a2 {
+    margin: 0;
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+    min-height: 40px;
+  }
+  .bar [hidden] {
+    display: none;
+  }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tabs button,
+  .replay {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid #d9d9de;
+    border-radius: 999px;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .tabs button[aria-pressed='true'] {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #fff;
+  }
+  .replay:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .stage {
+    border: 1px solid var(--line-soft);
+    border-radius: 20px;
+    background-color: #fff;
+    background-image: radial-gradient(rgb(10 10 11 / 0.07) 1px, transparent 1.2px);
+    background-size: 20px 20px;
+    overflow-x: auto;
+  }
+  /* Agent, A2WP and wallet span both rows; issuer and verifier each take a row with their own arrow. */
+  .diagram {
+    min-width: 820px;
+    padding: 48px 36px;
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) 170px minmax(0, 1fr) 170px minmax(0, 0.8fr);
+    grid-template-rows: auto auto auto auto;
+    row-gap: 28px;
+    align-items: center;
+  }
+  .box--agent,
+  .edge--a2wp,
+  .wallet {
+    grid-row: 2 / span 2;
+  }
+  .box--agent {
+    align-self: stretch;
+    justify-content: center;
+  }
+  .edge--vci {
+    grid-column: 4;
+    grid-row: 2;
+  }
+  .edge--vp {
+    grid-column: 4;
+    grid-row: 3;
+  }
+  .box--issuer {
+    grid-column: 5;
+    grid-row: 2;
+  }
+  .box--verifier {
+    grid-column: 5;
+    grid-row: 3;
+  }
+
+  /* Links from issuer or verifier to the agent: a bracket under (or over) the diagram, using the same columns. */
+  .link {
+    --hue: var(--violet);
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    height: 30px;
+  }
+  .link--offer {
+    grid-row: 1;
+    margin-bottom: -28px;
+    align-self: end;
+  }
+  .link--req {
+    --hue: var(--cobalt);
+    grid-row: 4;
+    margin-top: -28px;
+    align-self: start;
+  }
+  .link__seg {
+    position: relative;
+    border: 0 dashed #c8c8d0;
+  }
+  .link__seg--start {
+    grid-column: 1;
+    margin-left: 50%;
+    border-left-width: 1.5px;
+  }
+  .link__seg--mid {
+    grid-column: 2 / 5;
+  }
+  .link__seg--end {
+    grid-column: 5;
+    margin-right: 50%;
+    border-right-width: 1.5px;
+  }
+  .link--offer .link__seg {
+    border-top-width: 1.5px;
+  }
+  .link--req .link__seg {
+    border-bottom-width: 1.5px;
+  }
+  .link--offer .link__seg--start {
+    border-top-left-radius: 14px;
+  }
+  .link--offer .link__seg--end {
+    border-top-right-radius: 14px;
+  }
+  .link--req .link__seg--start {
+    border-bottom-left-radius: 14px;
+  }
+  .link--req .link__seg--end {
+    border-bottom-right-radius: 14px;
+  }
+  /* Arrowhead into the agent. */
+  .link__seg--start::after {
+    content: '';
+    position: absolute;
+    left: -6.5px;
+    border: 5.5px solid transparent;
+  }
+  .link--offer .link__seg--start::after {
+    bottom: -2px;
+    border-top-color: #c8c8d0;
+    border-bottom-width: 0;
+  }
+  .link--req .link__seg--start::after {
+    top: -2px;
+    border-bottom-color: #c8c8d0;
+    border-top-width: 0;
+  }
+  .link.is-active .link__seg {
+    border-style: solid;
+    border-color: var(--hue);
+  }
+  .link.is-active .link__seg--start::after {
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+  }
+  .link--offer.is-active .link__seg--start::after {
+    border-top-color: var(--hue);
+  }
+  .link--req.is-active .link__seg--start::after {
+    border-bottom-color: var(--hue);
+  }
+  .link__label {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0 8px;
+    background: #fff;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .link--offer .link__label {
+    top: -8px;
+  }
+  .link--req .link__label {
+    bottom: -8px;
+  }
+  .link.is-active .link__label {
+    color: var(--hue);
+  }
+  .link .edge__msg {
+    bottom: auto;
+  }
+  .link--offer .edge__msg {
+    top: 8px;
+  }
+  .link--req .edge__msg {
+    top: auto;
+    bottom: 8px;
+  }
+
+  [data-part] {
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.35s ease;
+  }
+  .box {
+    --hue: var(--violet);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    font-size: 16px;
+  }
+  .box--verifier {
+    --hue: var(--cobalt);
+  }
+  .box.is-active {
+    border-color: var(--hue);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--hue) 16%, transparent);
+  }
+  .box__note {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .avatar {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 10px;
+    border-radius: 99px;
+    background: var(--violet);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .wallet {
+    padding: 16px;
+    border-radius: 18px;
+    background: #111114;
+    box-shadow: 0 24px 50px rgb(10 10 11 / 0.2);
+  }
+  .wallet.is-active {
+    box-shadow:
+      0 0 0 3px #fff,
+      0 0 0 5px var(--teal),
+      0 24px 50px rgb(10 10 11 / 0.2);
+  }
+  .wallet__label {
+    margin: 0 0 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #c8c8d0;
+  }
+  .wallet__row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .wallet__chip {
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid #3a3a42;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #a1a1aa;
+  }
+  .slot {
+    position: relative;
+  }
+  .slot__empty {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px dashed #3a3a42;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #6b6b74;
+  }
+  .slot__cred {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: var(--violet);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
+  }
+  .slot__cred:not(.is-on) {
+    opacity: 0;
+    transform: translateX(28px) scale(0.96);
+  }
+  .slot__by {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+
+  /* Arrows */
+  .edge {
+    --hue: var(--ink);
+    position: relative;
+    height: 64px;
+    margin: 0 10px;
+  }
+  .edge--vci {
+    --hue: var(--violet);
+  }
+  .edge--vp {
+    --hue: var(--cobalt);
+  }
+  .edge__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    border-top: 1.5px dashed #c8c8d0;
+  }
+  .edge__line::before,
+  .edge__line::after {
+    content: '';
+    position: absolute;
+    top: -5.5px;
+    border: 5px solid transparent;
+  }
+  .edge__line::before {
+    left: -2px;
+    border-right-color: #c8c8d0;
+    border-left-width: 0;
+  }
+  .edge__line::after {
+    right: -2px;
+    border-left-color: #c8c8d0;
+    border-right-width: 0;
+  }
+  .edge.is-active .edge__line {
+    border-top: 2px solid var(--hue);
+  }
+  .edge.is-active .edge__line::before {
+    border-right-color: var(--hue);
+  }
+  .edge.is-active .edge__line::after {
+    border-left-color: var(--hue);
+  }
+  .edge__proto {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 8px);
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .edge--a2wp .edge__proto {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #fff;
+  }
+  .edge.is-active .edge__proto {
+    color: var(--hue);
+  }
+  .edge--a2wp.is-active .edge__proto {
+    color: #fff;
+  }
+  /* The message travelling on this arrow, sliding in from where it comes from. */
+  .edge__msg {
+    position: absolute;
+    left: 50%;
+    bottom: calc(50% + 8px);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--hue);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-50%);
+    transition:
+      opacity 0.35s ease,
+      transform 0.5s ease;
+  }
+  .edge__msg.is-on {
+    opacity: 1;
+  }
+  .edge__msg[data-dir='1']:not(.is-on) {
+    transform: translateX(calc(-50% - 24px));
+  }
+  .edge__msg[data-dir='-1']:not(.is-on) {
+    transform: translateX(calc(-50% + 24px));
+  }
+
+  /* Caption */
+  .caption {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px 24px;
+    padding: 20px 24px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+  }
+  .caption p {
+    margin: 0;
+  }
+  .caption__count {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .caption__text {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .caption__sub {
+    margin-top: 4px !important;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    min-height: 1.5em;
+  }
+  .progress {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 4px;
+  }
+  /* Bars are rebuilt by the script, so these rules must not be scoped. */
+  .progress :global(li) {
+    width: 18px;
+    height: 4px;
+    border-radius: 99px;
+    background: #e7e7ea;
+    transition: background 0.3s ease;
+  }
+  .progress :global(li.is-on) {
+    background: var(--ink);
+  }
+
+  @media (max-width: 760px) {
+    .caption {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

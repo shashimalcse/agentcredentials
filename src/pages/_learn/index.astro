@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import EntryList from '../../components/EntryList.astro';
+import { getLearn } from '../../lib/content';
+
+const entries = (await getLearn()).map((e) => ({
+  href: `/learn/${e.id}/`,
+  tag: e.data.topic,
+  title: e.data.title,
+  description: e.data.description,
+  draft: e.data.draft,
+}));
+---
+
+<Base title="Learn" description="Plain-language guides to verifiable credentials and the standards behind them.">
+  <PageHead
+    slot="top"
+    eyebrow="Learn"
+    title="Learn the stack"
+    lede="Plain-language guides to verifiable credentials and the standards underneath, agent or not."
+  />
+  <section class="container list">
+    <EntryList entries={entries} empty="Guides are on their way. Meanwhile, the specs page maps the standards." />
+  </section>
+</Base>
+
+<style>
+  .list {
+    padding-bottom: 112px;
+  }
+</style>

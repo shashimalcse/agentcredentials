@@ -1,0 +1,40 @@
+---
+import { Code } from 'astro:components';
+
+interface Props {
+  code: string;
+  lang: 'json' | 'http';
+  title?: string;
+}
+
+const { code, lang, title } = Astro.props;
+---
+
+<figure class="code">
+  {title && <figcaption>{title}</figcaption>}
+  <Code code={code.trim()} lang={lang} theme="github-dark-default" />
+</figure>
+
+<style>
+  .code {
+    margin: 0;
+    border-radius: 14px;
+    background: var(--code-bg);
+    overflow: hidden;
+  }
+  figcaption {
+    padding: 10px 16px;
+    border-bottom: 1px solid #26262b;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #a1a1aa;
+  }
+  .code :global(pre) {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    background: transparent !important;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+</style>

@@ -1,0 +1,448 @@
+---
+import Base from '../layouts/Base.astro';
+import HeroArt from '../components/HeroArt.astro';
+import FlowDemo from '../components/FlowDemo.astro';
+import { url } from '../lib/url';
+
+const kinds = [
+  {
+    hue: 'violet',
+    name: "Agent's own credential",
+    tagline: 'Issued to the agent.',
+    rows: [
+      ['Describes', 'The agent itself: who made it, what it may do'],
+      ['Issued by', 'The agent provider, when you activate the agent'],
+      ['Arrives via', 'OpenID4VCI'],
+      ['Checked by', 'Services that only accept verified agents'],
+    ],
+    example: { verifier: 'flights.example', asks: 'Is this a verified agent?' },
+  },
+  {
+    hue: 'teal',
+    name: 'Delegated credential',
+    tagline: 'Shared by a person.',
+    rows: [
+      ['Describes', 'A fact about you, such as being over 18'],
+      ['Issued by', 'Your issuer, then delegated by you with limits'],
+      ['Arrives via', 'Delegated SD-JWT, from your wallet'],
+      ['Checked by', 'Services that need proof about the person'],
+    ],
+    example: { verifier: 'store.example', asks: 'Is the buyer over 18?' },
+  },
+];
+
+const compare = [
+  ['Proves', 'Someone has the key', 'A signed fact, from an issuer you trust'],
+  ['Reveals', 'Whatever the account can reach', 'Only the claims asked for'],
+  ['Limits', 'Usually all or nothing', 'Scoped and time-boxed by the person'],
+  ['If it leaks', 'Anyone can use it', "Useless without the agent's key"],
+  ['Checked by', 'Calling the service that issued it', 'Verifying a signature, anywhere'],
+];
+---
+
+<Base glow>
+  <section slot="top" class="container hero">
+    <div class="hero__copy">
+      <p class="pill">
+        <span class="pill__dots" aria-hidden="true">
+          <span class="dot" style="background: var(--cobalt)"></span>
+          <span class="dot" style="background: var(--violet)"></span>
+          <span class="dot" style="background: var(--coral)"></span>
+          <span class="dot" style="background: var(--teal)"></span>
+        </span>
+        A field guide · open standards
+      </p>
+      <h1 class="h-display hero__title">Verifiable credentials for AI agents.</h1>
+      <p class="lede hero__lede">
+        Agents book, buy and sign in for us. Verifiable credentials let them prove who they are and what you allowed
+        them to do, and reveal nothing else.
+      </p>
+      <div class="hero__actions">
+        <a href="#demo" class="btn btn--primary">See it in action</a>
+        <a href="#how" class="btn btn--text">How it works <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="hero__standards">Open standards · OpenID4VCI · OpenID4VP · SD-JWT VC · A2WP</p>
+    </div>
+    <div class="hero__art">
+      <HeroArt />
+    </div>
+  </section>
+
+  <section id="demo" class="section section--tinted">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">See it in action</p>
+          <h2 class="h-section">An agent, its wallet, and two kinds of proof.</h2>
+        </div>
+        <p>Ada activates her agent, delegates one fact about herself, and lets it shop and book. Watch each credential arrive and get checked.</p>
+      </div>
+      <FlowDemo />
+      <p class="demo__more">
+        <span class="demo__chip">A2WP</span>
+        The agent never touches the credentials. It talks to its wallet over A2WP.
+        <a href={url('/a2wp/')}>See how A2WP works <span aria-hidden="true">→</span></a>
+      </p>
+    </div>
+  </section>
+
+  <section id="how" class="section">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">How it works</p>
+          <h2 class="h-section">Two ways an agent holds a credential.</h2>
+        </div>
+        <p>Some credentials describe the agent. Others describe the person it works for. Services ask for the one they need.</p>
+      </div>
+
+      <div class="kinds">
+        {
+          kinds.map((k) => (
+            <article class="kind" style={`--hue: var(--${k.hue}); --tint: var(--${k.hue}-tint); --hue-ink: var(--${k.hue}-ink)`}>
+              <header class="kind__head">
+                <span class="kind__chip" aria-hidden="true" />
+                <div>
+                  <h3>{k.name}</h3>
+                  <p>{k.tagline}</p>
+                </div>
+              </header>
+              {k.rows.map(([term, value]) => (
+                <dl class="kind__row">
+                  <dt>{term}</dt>
+                  <dd>{value}</dd>
+                </dl>
+              ))}
+              <p class="kind__example">
+                <span class="kind__verifier">{k.example.verifier}</span>
+                <span>“{k.example.asks}”</span>
+              </p>
+            </article>
+          ))
+        }
+      </div>
+
+      <p class="kinds__note">
+        <span class="dot" style="background: var(--cobalt)"></span>
+        <span>
+          Either way, the agent presents with <b>OpenID4VP</b>, shares only what is asked, and the verifier checks the
+          signatures itself.
+        </span>
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2 class="h-section">Why not just an API key?</h2>
+        <p>Keys say who holds them. Credentials say what is true, and who vouches for it.</p>
+      </div>
+      <div class="compare">
+        <table>
+          <thead>
+            <tr>
+              <td></td>
+              <th scope="col">API key</th>
+              <th scope="col" class="compare__vc">Verifiable credential</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              compare.map(([row, key, vc]) => (
+                <tr>
+                  <th scope="row">{row}</th>
+                  <td class="compare__key">{key}</td>
+                  <td class="compare__vc">{vc}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="h-section deeper__title">Go deeper</h2>
+      <div class="deeper">
+        <div>
+          <p class="eyebrow deeper__label"><span class="dot" style="background: var(--violet)"></span>Protocol</p>
+          <div class="link-list">
+            <a href={url('/a2wp/')}>How A2WP works <span aria-hidden="true">→</span></a>
+            <a href="https://www.ietf.org/archive/id/draft-senarath-a2wp-00.html">Read the draft <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow deeper__label"><span class="dot" style="background: var(--teal)"></span>Specs</p>
+          <div class="link-list">
+            <a href={url('/specs/#formats')}>Formats: SD-JWT VC, mdoc <span aria-hidden="true">→</span></a>
+            <a href={url('/specs/')}>All specs <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow deeper__label"><span class="dot" style="background: var(--coral)"></span>Tools</p>
+          <div class="link-list">
+            <a href={url('/tools/sd-jwt-decoder/')}>SD-JWT decoder <span aria-hidden="true">→</span></a>
+            <a href={url('/tools/')}>All tools <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    padding-top: 56px;
+    padding-bottom: 64px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+    align-items: center;
+    gap: 32px;
+  }
+  .pill {
+    margin: 0 0 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.75);
+    border: 1px solid rgb(10 10 11 / 0.08);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+  .pill__dots {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .pill__dots .dot {
+    width: 7px;
+    height: 7px;
+  }
+  .hero__title {
+    font-size: clamp(40px, 4.9vw, 62px);
+    line-height: 1.02;
+  }
+  .hero__lede {
+    margin-top: 28px;
+    max-width: 540px;
+  }
+  .hero__actions {
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 28px;
+  }
+  .hero__standards {
+    margin: 40px 0 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .demo__more {
+    margin: 28px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    color: var(--text);
+  }
+  .demo__more a {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .demo__chip {
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  /* Two kinds of credential */
+  /* Both cards share one row grid (subgrid), so matching rows line up even when text wraps. */
+  .kinds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+  }
+  .kind {
+    grid-row: span 6;
+    display: grid;
+    grid-template-rows: subgrid;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .kind__head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    background: var(--tint);
+  }
+  .kind__chip {
+    width: 56px;
+    height: 36px;
+    flex: none;
+    border-radius: 8px;
+    background: var(--hue);
+    box-shadow: 0 10px 20px color-mix(in srgb, var(--hue) 30%, transparent);
+  }
+  .kind__head h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .kind__head p {
+    margin: 2px 0 0;
+    color: var(--hue-ink);
+    font-size: 15px;
+  }
+  .kind__row {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    align-items: baseline;
+    gap: 16px;
+    margin: 0 24px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .kind__row:nth-of-type(4) {
+    border-bottom: 0;
+  }
+  .kind__row dt {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .kind__row dd {
+    margin: 0;
+    font-size: 15px;
+  }
+  .kind__example {
+    margin: 0;
+    padding: 16px 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .kind__verifier {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    padding-top: 1px;
+  }
+  .kinds__note {
+    margin: 24px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+  }
+  .kinds__note .dot {
+    flex: none;
+  }
+  .kinds__note b {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* Compare */
+  .compare {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .compare table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .compare th,
+  .compare td {
+    padding: 16px 24px;
+    text-align: left;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .compare tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  .compare thead th {
+    padding-top: 18px;
+    padding-bottom: 18px;
+    font-weight: 600;
+    border-bottom-color: var(--line);
+  }
+  .compare thead td {
+    width: 28%;
+    border-bottom-color: var(--line);
+  }
+  .compare tbody th {
+    font-weight: 500;
+  }
+  .compare__key {
+    color: var(--muted);
+  }
+  .compare__vc {
+    background: #f4f6fe;
+  }
+  thead .compare__vc {
+    color: var(--cobalt-ink);
+  }
+
+  /* Go deeper */
+  .deeper__title {
+    margin-bottom: 48px;
+  }
+  .deeper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px;
+  }
+  .deeper > div {
+    flex: 1 1 300px;
+    min-width: 0;
+  }
+  .deeper__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 800px) {
+    .kinds {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 20px;
+    }
+    .kind {
+      grid-row: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .kind__row {
+      grid-template-columns: 96px minmax(0, 1fr);
+    }
+  }
+</style>

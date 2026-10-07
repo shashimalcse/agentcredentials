@@ -1,0 +1,103 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
+import { url } from '../lib/url';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Colour fade behind the header and first section. On by default. */
+  glow?: boolean;
+}
+
+const { title, description = site.description, glow = true } = Astro.props;
+const pageTitle = title ? `${title} · ${site.title}` : `${site.title} · Verifiable credentials for AI agents`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+// Kept out of search engines until the site is on its own domain (set by the deploy workflow).
+const noindex = import.meta.env.PUBLIC_NOINDEX === 'true';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
+    <link rel="sitemap" href={url('/sitemap-index.xml')} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+    />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="top">
+      {glow && <div class="glow" aria-hidden="true"><div class="glow__color"></div><div class="glow__dots"></div></div>}
+      <Header />
+      <slot name="top" />
+    </div>
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .skip {
+    position: absolute;
+    left: 16px;
+    top: -48px;
+    z-index: 10;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--ink);
+    color: #fff;
+  }
+  .skip:focus {
+    top: 12px;
+    color: #fff;
+  }
+  .top {
+    position: relative;
+  }
+  .glow {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 860px;
+    pointer-events: none;
+  }
+  .glow__color,
+  .glow__dots {
+    position: absolute;
+    inset: 0;
+  }
+  .glow__color {
+    background:
+      radial-gradient(38% 55% at 8% 8%, rgb(36 72 224 / 0.3), transparent 70%),
+      radial-gradient(34% 50% at 46% 0%, rgb(124 58 237 / 0.24), transparent 70%),
+      radial-gradient(36% 55% at 92% 14%, rgb(242 100 61 / 0.26), transparent 70%),
+      radial-gradient(32% 45% at 74% 62%, rgb(18 165 148 / 0.22), transparent 70%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 100%);
+  }
+  .glow__dots {
+    background-image: radial-gradient(rgb(10 10 11 / 0.13) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.9), transparent 75%);
+  }
+</style>

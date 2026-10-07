@@ -1,0 +1,122 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { specGroups } from '../data/specs';
+---
+
+<Base title="Specs" description="The standards behind verifiable credentials, and the emerging work for agents.">
+  <PageHead
+    slot="top"
+    eyebrow="Specs"
+    title="The standards, in one place"
+    lede="What each spec does, who maintains it, and where it fits when an agent is the one holding or presenting the credential."
+  >
+    <nav aria-label="Spec groups" class="jump">
+      {specGroups.map((g) => <a href={`#${g.id}`} style={`--hue: var(--${g.hue})`}><span class="dot" />{g.title}</a>)}
+    </nav>
+  </PageHead>
+
+  <div class="container groups">
+    {
+      specGroups.map((g) => (
+        <section id={g.id} class="group" style={`--hue: var(--${g.hue})`}>
+          <div class="group__head">
+            <h2>{g.title}</h2>
+            {g.note && <p>{g.note}</p>}
+          </div>
+          <ul>
+            {g.specs.map((s) => (
+              <li>
+                <a href={s.href}>
+                  <span class="spec__name">{s.name}</span>
+                  <span class="spec__summary">{s.summary}</span>
+                  <span class="spec__body">{s.body}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .jump {
+    margin-top: 36px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .jump a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid #d9d9de;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.8);
+    font-size: 14px;
+  }
+  .jump .dot {
+    background: var(--hue);
+  }
+  .groups {
+    padding-bottom: 112px;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+  }
+  .group {
+    scroll-margin-top: 24px;
+  }
+  .group__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px 24px;
+    margin-bottom: 16px;
+  }
+  .group h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  .group__head p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--hue);
+  }
+  .group a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 32px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .spec__name {
+    flex: 1 1 280px;
+    font-weight: 500;
+  }
+  .spec__summary {
+    flex: 2 1 380px;
+    color: var(--text);
+    font-size: 15px;
+  }
+  .spec__body {
+    flex: 0 0 96px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>

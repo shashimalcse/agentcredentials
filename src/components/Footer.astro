@@ -1,0 +1,51 @@
+---
+import { site } from '../data/site';
+import { url } from '../lib/url';
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <p>
+      By <a href={site.authorUrl} class="footer__author">{site.author}</a>. Writing on verifiable credentials for AI agents.
+      Opinions are my own.
+    </p>
+    <nav aria-label="Footer" class="footer__nav">
+      <a href={site.github}>GitHub</a>
+      <a href={url('/a2wp/')}>A2WP</a>
+      <a href={url('/specs/')}>Specs</a>
+      <a href={url('/tools/')}>Tools</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+  }
+  .footer__inner {
+    padding-top: 48px;
+    padding-bottom: 64px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 24px 48px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .footer__inner p {
+    margin: 0;
+    max-width: 460px;
+  }
+  .footer__author {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+  }
+  .footer__nav a {
+    color: var(--text);
+  }
+</style>

@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { url } from '../lib/url';
+---
+
+<Base title="Not found" glow>
+  <PageHead slot="top" eyebrow="404" title="This credential could not be verified." lede="The page you asked for does not exist, or has moved.">
+    <p class="back"><a href={url('/')} class="btn btn--primary">Back to home</a></p>
+  </PageHead>
+</Base>
+
+<style>
+  .back {
+    margin: 36px 0 120px;
+  }
+</style>

@@ -1,0 +1,89 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import { url } from '../../lib/url';
+
+const tools = [
+  {
+    href: url('/tools/sd-jwt-decoder/'),
+    title: 'SD-JWT decoder',
+    description: 'Inspect a credential and see exactly which claims it discloses. Nothing leaves your browser.',
+    hue: 'coral',
+  },
+];
+---
+
+<Base title="Tools" description="Small, sharp utilities for working with verifiable credentials.">
+  <PageHead slot="top" eyebrow="Tools" title="Tools" lede="Small, sharp utilities that run in your browser." />
+  <section class="container tools">
+    {
+      tools.map((t) => (
+        <a href={t.href} class="tool" style={`--hue: var(--${t.hue}); --tint: var(--${t.hue}-tint)`}>
+          <span class="tool__mark" aria-hidden="true">
+            <span />
+          </span>
+          <span class="tool__title">{t.title}</span>
+          <span class="tool__desc">{t.description}</span>
+          <span class="tool__go">Open <span aria-hidden="true">→</span></span>
+        </a>
+      ))
+    }
+  </section>
+</Base>
+
+<style>
+  .tools {
+    padding-bottom: 112px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .tool {
+    flex: 0 1 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+  .tool:hover {
+    color: inherit;
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px color-mix(in srgb, var(--hue) 14%, transparent);
+  }
+  .tool__mark {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: var(--tint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tool__mark span {
+    width: 26px;
+    height: 17px;
+    border-radius: 4px;
+    background: var(--hue);
+    transform: rotate(-8deg);
+  }
+  .tool__title {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .tool__desc {
+    color: var(--text);
+    font-size: 15px;
+  }
+  .tool__go {
+    margin-top: 12px;
+    font-weight: 500;
+    color: var(--hue);
+  }
+</style>

@@ -1,0 +1,106 @@
+---
+interface Entry {
+  href: string;
+  tag: string;
+  title: string;
+  description: string;
+  meta?: string;
+  draft?: boolean;
+}
+
+interface Props {
+  entries: Entry[];
+  empty: string;
+}
+
+const { entries, empty } = Astro.props;
+---
+
+{
+  entries.length === 0 ? (
+    <p class="empty">{empty}</p>
+  ) : (
+    <ul class="entries">
+      {entries.map((e) => (
+        <li>
+          <a href={e.href}>
+            <span class="entries__tag">{e.tag}</span>
+            <span class="entries__main">
+              <span class="entries__title">
+                {e.title}
+                {e.draft && <span class="entries__draft">Draft</span>}
+              </span>
+              <span class="entries__desc">{e.description}</span>
+            </span>
+            {e.meta && <span class="entries__meta">{e.meta}</span>}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .empty {
+    margin: 0;
+    padding: 32px 0;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .entries {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .entries a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 32px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .entries__tag {
+    flex: 0 0 120px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .entries__main {
+    flex: 1 1 480px;
+    min-width: 0;
+  }
+  .entries__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  .entries__desc {
+    display: block;
+    margin-top: 6px;
+    color: var(--text);
+    font-size: 15px;
+  }
+  .entries__meta {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .entries__draft {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--coral-tint);
+    color: var(--coral-ink);
+  }
+</style>

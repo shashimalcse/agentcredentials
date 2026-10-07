@@ -1,0 +1,176 @@
+---
+/** Decorative: a fanned deck of credentials, the top one sealed. */
+const cards = [
+  { hue: 'cobalt', angle: -16, x: -70, y: 18, delay: 0 },
+  { hue: 'coral', angle: -6, x: -24, y: 2, delay: 0.8 },
+  { hue: 'teal', angle: 5, x: 24, y: 4, delay: 1.6 },
+  { hue: 'violet', angle: 15, x: 70, y: 22, delay: 2.4 },
+];
+---
+
+<div class="art" aria-hidden="true">
+  <div class="art__ring"></div>
+  <div class="art__ring art__ring--inner"></div>
+  <span class="art__dot" style="--c: var(--teal); left: 12%; top: 22%"></span>
+  <span class="art__dot" style="--c: var(--coral); right: 10%; top: 16%"></span>
+  <span class="art__dot" style="--c: var(--cobalt); right: 16%; bottom: 14%"></span>
+  <span class="art__dot art__dot--sm" style="--c: var(--violet); left: 20%; bottom: 18%"></span>
+
+  <div class="art__deck">
+    {
+      cards.map((c, i) => (
+        <div class="art__slot" style={`--a: ${c.angle}deg; --x: ${c.x}px; --y: ${c.y}px; z-index: ${i}`}>
+          <div class="art__card" style={`--hue: var(--${c.hue}); animation-delay: ${c.delay}s`}>
+            <span class="art__chip" />
+            <span class="art__bar" />
+            <span class="art__bar art__bar--short" />
+            {i === cards.length - 1 && (
+              <span class="art__seal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12l5 5 9-10" />
+                </svg>
+              </span>
+            )}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .art {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 1 / 0.9;
+    margin-left: auto;
+  }
+  .art__ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 92%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1.5px dashed rgb(10 10 11 / 0.12);
+    transform: translate(-50%, -50%);
+    animation: spin 90s linear infinite;
+  }
+  .art__ring--inner {
+    width: 62%;
+    border-style: solid;
+    border-color: rgb(10 10 11 / 0.06);
+    animation-direction: reverse;
+    animation-duration: 120s;
+  }
+  .art__dot {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 99px;
+    background: var(--c);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--c) 40%, transparent);
+    animation: drift 7s ease-in-out infinite;
+  }
+  .art__dot--sm {
+    width: 9px;
+    height: 9px;
+    animation-delay: 1.5s;
+  }
+
+  .art__deck {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: 0;
+    height: 0;
+  }
+  .art__slot {
+    position: absolute;
+    left: -120px;
+    top: -76px;
+    transform: translate(var(--x), var(--y)) rotate(var(--a));
+    transform-origin: 50% 120%;
+  }
+  .art__card {
+    position: relative;
+    width: 240px;
+    height: 152px;
+    padding: 20px;
+    border-radius: 18px;
+    background: var(--hue);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      0 24px 48px color-mix(in srgb, var(--hue) 30%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: float 6s ease-in-out infinite;
+  }
+  .art__chip {
+    width: 38px;
+    height: 28px;
+    margin-bottom: 18px;
+    border-radius: 7px;
+    background: rgb(255 255 255 / 0.3);
+  }
+  .art__bar {
+    width: 64%;
+    height: 9px;
+    border-radius: 99px;
+    background: rgb(255 255 255 / 0.55);
+  }
+  .art__bar--short {
+    width: 38%;
+    background: rgb(255 255 255 / 0.35);
+  }
+  .art__seal {
+    position: absolute;
+    right: 18px;
+    top: 18px;
+    width: 34px;
+    height: 34px;
+    border-radius: 99px;
+    background: #fff;
+    color: var(--violet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 14px rgb(10 10 11 / 0.15);
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(6px, -8px);
+    }
+  }
+  @keyframes spin {
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .art {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .art__deck {
+      transform: scale(0.8);
+    }
+  }
+</style>
