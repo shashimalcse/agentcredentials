@@ -5,33 +5,6 @@ import FlowDemo from '../components/FlowDemo.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { url } from '../lib/url';
 
-const kinds = [
-  {
-    hue: 'violet',
-    name: "Agent's own credential",
-    tagline: 'Issued to the agent.',
-    rows: [
-      ['Describes', 'The agent itself: who made it, what it may do'],
-      ['Issued by', 'A registry or the agent provider that vouches for it'],
-      ['Arrives via', 'OpenID4VCI'],
-      ['Checked by', 'Services that only accept verified agents'],
-    ],
-    example: { verifier: 'flights.example', asks: 'Is this a verified agent?' },
-  },
-  {
-    hue: 'teal',
-    name: 'Delegated credential',
-    tagline: 'Shared by a person.',
-    rows: [
-      ['Describes', 'A fact about you, such as being over 18'],
-      ['Issued by', 'Your issuer, then delegated by you with limits'],
-      ['Arrives via', 'Delegated SD-JWT, from your wallet'],
-      ['Checked by', 'Services that need proof about the person'],
-    ],
-    example: { verifier: 'store.example', asks: 'Is the buyer over 18?' },
-  },
-];
-
 const compare = [
   ['Proves', 'Someone has the key', 'A signed fact, from an issuer you trust'],
   ['Reveals', 'Whatever the account can reach', 'Only the claims asked for'],
@@ -60,7 +33,6 @@ const compare = [
       </p>
       <div class="hero__actions">
         <a href="#demo" class="btn btn--primary">See it in action</a>
-        <a href="#how" class="btn btn--text">How it works <span aria-hidden="true">→</span></a>
       </div>
       <p class="hero__standards">Open standards · OpenID4VCI · OpenID4VP · SD-JWT VC · A2WP</p>
     </div>
@@ -74,9 +46,9 @@ const compare = [
       <div class="section-head">
         <div>
           <p class="eyebrow">See it in action</p>
-          <h2 class="h-section">An agent, its wallet, and two kinds of proof.</h2>
+          <h2 class="h-section">An agent, its wallet, and the proof it shows.</h2>
         </div>
-        <p>In the film, Ada registers her agent once and it signs in on its own. In the demo below, it also carries one fact about Ada, delegated from her wallet. Watch each credential arrive and get checked.</p>
+        <p>Watch an agent sign in with a credential of its own. Then see the whole picture: Ada also delegates one fact about herself, and each credential arrives and gets checked.</p>
       </div>
       <FilmPlayer />
       <FlowDemo />
@@ -84,52 +56,6 @@ const compare = [
         <span class="demo__chip">A2WP</span>
         The agent never touches the credentials. It talks to its wallet over A2WP.
         <a href={url('/a2wp/')}>See how A2WP works <span aria-hidden="true">→</span></a>
-      </p>
-    </div>
-  </section>
-
-  <section id="how" class="section">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">How it works</p>
-          <h2 class="h-section">Two ways an agent holds a credential.</h2>
-        </div>
-        <p>Some credentials describe the agent. Others describe the person it works for. Services ask for the one they need.</p>
-      </div>
-
-      <div class="kinds">
-        {
-          kinds.map((k) => (
-            <article class="kind" style={`--hue: var(--${k.hue}); --tint: var(--${k.hue}-tint); --hue-ink: var(--${k.hue}-ink)`}>
-              <header class="kind__head">
-                <span class="kind__chip" aria-hidden="true" />
-                <div>
-                  <h3>{k.name}</h3>
-                  <p>{k.tagline}</p>
-                </div>
-              </header>
-              {k.rows.map(([term, value]) => (
-                <dl class="kind__row">
-                  <dt>{term}</dt>
-                  <dd>{value}</dd>
-                </dl>
-              ))}
-              <p class="kind__example">
-                <span class="kind__verifier">{k.example.verifier}</span>
-                <span>“{k.example.asks}”</span>
-              </p>
-            </article>
-          ))
-        }
-      </div>
-
-      <p class="kinds__note">
-        <span class="dot" style="background: var(--cobalt)"></span>
-        <span>
-          Either way, the agent presents with <b>OpenID4VP</b>, shares only what is asked, and the verifier checks the
-          signatures itself.
-        </span>
       </p>
     </div>
   </section>
@@ -275,100 +201,6 @@ const compare = [
     font-size: 11px;
   }
 
-  /* Two kinds of credential */
-  /* Both cards share one row grid (subgrid), so matching rows line up even when text wraps. */
-  .kinds {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 20px;
-  }
-  .kind {
-    grid-row: span 6;
-    display: grid;
-    grid-template-rows: subgrid;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--paper);
-    overflow: hidden;
-  }
-  .kind__head {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 24px;
-    background: var(--tint);
-  }
-  .kind__chip {
-    width: 56px;
-    height: 36px;
-    flex: none;
-    border-radius: 8px;
-    background: var(--hue);
-    box-shadow: 0 10px 20px color-mix(in srgb, var(--hue) 30%, transparent);
-  }
-  .kind__head h3 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-  }
-  .kind__head p {
-    margin: 2px 0 0;
-    color: var(--hue-ink);
-    font-size: 15px;
-  }
-  .kind__row {
-    display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
-    align-items: baseline;
-    gap: 16px;
-    margin: 0 24px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--line-soft);
-  }
-  .kind__row:nth-of-type(4) {
-    border-bottom: 0;
-  }
-  .kind__row dt {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .kind__row dd {
-    margin: 0;
-    font-size: 15px;
-  }
-  .kind__example {
-    margin: 0;
-    padding: 16px 24px;
-    border-top: 1px solid var(--line);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 12px;
-    font-size: 14px;
-    color: var(--text);
-  }
-  .kind__verifier {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--ink);
-    padding-top: 1px;
-  }
-  .kinds__note {
-    margin: 24px 0 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text);
-  }
-  .kinds__note .dot {
-    flex: none;
-  }
-  .kinds__note b {
-    font-weight: 600;
-    color: var(--ink);
-  }
-
   /* Compare */
   .compare {
     overflow-x: auto;
@@ -433,18 +265,4 @@ const compare = [
     margin-bottom: 8px;
   }
 
-  @media (max-width: 800px) {
-    .kinds {
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: 20px;
-    }
-    .kind {
-      grid-row: auto;
-      display: flex;
-      flex-direction: column;
-    }
-    .kind__row {
-      grid-template-columns: 96px minmax(0, 1fr);
-    }
-  }
 </style>
