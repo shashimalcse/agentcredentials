@@ -1,0 +1,66 @@
+---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { url } from '../lib/url';
+
+// The promo film, exported from the motion artifact and prepared with scripts/prepare-film.sh.
+// Until public/video/agent-credentials.mp4 exists, the component renders nothing.
+const file = 'video/agent-credentials.mp4';
+const poster = 'video/agent-credentials-poster.jpg';
+const hasFilm = existsSync(join(process.cwd(), 'public', file));
+const hasPoster = existsSync(join(process.cwd(), 'public', poster));
+---
+
+{
+  hasFilm && (
+    <figure class="film">
+      <video
+        class="film__video"
+        controls
+        playsinline
+        preload="metadata"
+        width="1920"
+        height="1080"
+        poster={hasPoster ? url(`/${poster}`) : undefined}
+        aria-describedby="film-desc"
+      >
+        <source src={url(`/${file}`)} type="video/mp4" />
+      </video>
+      <figcaption id="film-desc" class="film__caption">
+        Ada registers her agent once at Agent Registry, and the agent's wallet collects its credential. Days later the
+        agent books two tickets on its own: it signs in at Lantern Tickets with that credential, then at two other
+        sites with the same one.
+        <span class="film__note">Concept film of a working proof of concept. The sites are fictional.</span>
+      </figcaption>
+    </figure>
+  )
+}
+
+<style>
+  .film {
+    margin: 0 0 48px;
+  }
+  .film__video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: #131117;
+  }
+  .film__caption {
+    margin-top: 16px;
+    max-width: 760px;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .film__note {
+    display: block;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>

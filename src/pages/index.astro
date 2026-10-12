@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import HeroArt from '../components/HeroArt.astro';
 import FlowDemo from '../components/FlowDemo.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
 import { url } from '../lib/url';
 
 const kinds = [
@@ -11,7 +12,7 @@ const kinds = [
     tagline: 'Issued to the agent.',
     rows: [
       ['Describes', 'The agent itself: who made it, what it may do'],
-      ['Issued by', 'The agent provider, when you activate the agent'],
+      ['Issued by', 'A registry or the agent provider that vouches for it'],
       ['Arrives via', 'OpenID4VCI'],
       ['Checked by', 'Services that only accept verified agents'],
     ],
@@ -75,8 +76,9 @@ const compare = [
           <p class="eyebrow">See it in action</p>
           <h2 class="h-section">An agent, its wallet, and two kinds of proof.</h2>
         </div>
-        <p>Ada activates her agent, delegates one fact about herself, and lets it shop and book. Watch each credential arrive and get checked.</p>
+        <p>In the film, Ada registers her agent once and it signs in on its own. In the demo below, it also carries one fact about Ada, delegated from her wallet. Watch each credential arrive and get checked.</p>
       </div>
+      <FilmPlayer />
       <FlowDemo />
       <p class="demo__more">
         <span class="demo__chip">A2WP</span>
