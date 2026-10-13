@@ -1,0 +1,302 @@
+---
+/**
+ * A sequence diagram in the home-page diagram style: a few parties side by side, then one row per step.
+ * A step is an arrow between two parties with a short pill label, a credential chip, or (from === to)
+ * a check the party makes itself. Keep labels to a few words; the prose around the diagram explains.
+ * See .claude/skills/site-diagrams/SKILL.md.
+ */
+type Hue = 'violet' | 'cobalt' | 'teal' | 'coral' | 'ink';
+
+interface Party {
+  id: string;
+  /** Small uppercase role, e.g. "Issuer". */
+  role: string;
+  /** Short name, e.g. "Agent Registry". */
+  name: string;
+  /** "wallet" renders the dark agent-wallet panel. */
+  tone?: 'light' | 'wallet';
+  hue?: Hue;
+}
+
+interface Step {
+  from: string;
+  to: string;
+  /** A few words. Wrap protocol terms in `code` by passing them as `term`. */
+  label: string;
+  /** Optional emphasised term shown after the label, e.g. "OpenID4VCI" or "acquire_credential". */
+  term?: string;
+  /** Render the label as a credential chip of this hue instead of a pill. */
+  chip?: Hue;
+  hue?: Hue;
+}
+
+interface Props {
+  /** Read by screen readers instead of the drawing. One or two plain sentences. */
+  summary: string;
+  parties: Party[];
+  steps: Step[];
+}
+
+const { summary, parties, steps } = Astro.props;
+const n = parties.length;
+const col = (id: string) => {
+  const i = parties.findIndex((p) => p.id === id);
+  if (i < 0) throw new Error(`Exchange: unknown party "${id}"`);
+  return i;
+};
+const rows = steps.map((s) => {
+  const a = col(s.from);
+  const b = col(s.to);
+  const lo = Math.min(a, b);
+  const hi = Math.max(a, b);
+  return {
+    ...s,
+    self: a === b,
+    dir: b >= a ? 'right' : 'left',
+    left: `${((lo + 0.5) / n) * 100}%`,
+    width: `${((hi - lo) / n) * 100}%`,
+    center: `${((a + 0.5) / n) * 100}%`,
+    side: n === 1 || a * 2 + 1 === n ? 'mid' : a * 2 + 1 < n ? 'start' : 'end',
+  };
+});
+---
+
+<figure class="xg" style={`--cols: ${n}`}>
+  <div class="xg__parties" aria-hidden="true">
+    {
+      parties.map((p) => (
+        <div class:list={['xg__party', p.tone === 'wallet' && 'xg__party--wallet']} style={p.hue ? `--hue: var(--${p.hue})` : undefined}>
+          <span class="xg__role">{p.role}</span>
+          <span class="xg__name">{p.name}</span>
+        </div>
+      ))
+    }
+  </div>
+  <ol class="xg__steps" aria-hidden="true">
+    {
+      rows.map((r) => (
+        <li class="xg__row" style={r.hue ? `--hue: var(--${r.hue})` : undefined}>
+          {r.self ? (
+            <span class:list={['xg__check', `xg__check--${r.side}`]} style={`left: ${r.center}`}>
+              <span class="xg__tick">✓</span>
+              {r.label}
+              {r.term && <b>{r.term}</b>}
+            </span>
+          ) : (
+            <span class:list={['xg__arrow', `xg__arrow--${r.dir}`]} style={`left: ${r.left}; width: ${r.width}`}>
+              <span class="xg__line" />
+              {r.chip ? (
+                <span class="xg__chip" style={`--chip: var(--${r.chip})`}>
+                  {r.label}
+                  {r.term && <span class="xg__chip-by">{r.term}</span>}
+                </span>
+              ) : (
+                <span class="xg__pill">
+                  {r.label}
+                  {r.term && <b>{r.term}</b>}
+                </span>
+              )}
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+  <figcaption class="visually-hidden">{summary}</figcaption>
+</figure>
+
+<style>
+  .xg {
+    --hue: #c8c8d0;
+    margin: 28px 0 32px;
+    padding: 20px 16px 12px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--surface);
+  }
+  .xg__parties,
+  .xg__steps {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  }
+  .xg__party {
+    justify-self: center;
+    width: min(calc(100% - 12px), 190px);
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--hue, var(--line));
+    border-radius: 14px;
+    background: #fff;
+    text-align: center;
+  }
+  .xg__party--wallet {
+    border-color: #111114;
+    background: #111114;
+    color: #fff;
+  }
+  .xg__role {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .xg__party--wallet .xg__role {
+    color: #c8c8d0;
+  }
+  .xg__name {
+    display: block;
+    margin-top: 2px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .xg__steps {
+    position: relative;
+    margin: 4px 0 0;
+    padding: 6px 0 0;
+    list-style: none;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Lifelines, one per party, behind the steps. */
+  .xg__steps::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(to right, transparent 0 calc(50% / var(--cols) - 0.5px), var(--line) calc(50% / var(--cols) - 0.5px) calc(50% / var(--cols) + 0.5px), transparent calc(50% / var(--cols) + 0.5px) calc(100% / var(--cols)));
+    pointer-events: none;
+  }
+  .xg__row {
+    position: relative;
+    height: 46px;
+  }
+
+  .xg__arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .xg__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    border-top: 1.5px solid var(--hue);
+  }
+  .xg__line::after {
+    content: '';
+    position: absolute;
+    top: -5.75px;
+    border: 5px solid transparent;
+  }
+  .xg__arrow--right .xg__line::after {
+    right: -1px;
+    border-left: 7px solid var(--hue);
+    border-right-width: 0;
+  }
+  .xg__arrow--left .xg__line::after {
+    left: -1px;
+    border-right: 7px solid var(--hue);
+    border-left-width: 0;
+  }
+
+  .xg__pill,
+  .xg__check {
+    position: relative;
+    max-width: 92%;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--muted);
+    text-align: center;
+  }
+  .xg__pill b,
+  .xg__check b {
+    margin-left: 4px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .xg__chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 28px;
+    max-width: 88%;
+    padding: 0 10px;
+    border-radius: 9px;
+    background: var(--chip);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .xg__chip-by {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+
+  .xg__check {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    color: var(--teal-ink);
+    border-color: color-mix(in srgb, var(--teal) 35%, var(--line));
+  }
+  /* Left-hand parties: the tick sits on the lifeline and the pill runs right; right-hand parties mirror it. */
+  .xg__check--start {
+    transform: translate(-16px, -50%);
+  }
+  .xg__check--end {
+    transform: translate(calc(-100% + 16px), -50%);
+    flex-direction: row-reverse;
+  }
+  .xg__tick {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    border-radius: 99px;
+    background: var(--teal);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 560px) {
+    .xg {
+      padding: 16px 8px 10px;
+    }
+    .xg__name {
+      font-size: 13px;
+    }
+    .xg__pill,
+    .xg__check {
+      font-size: 10px;
+      padding: 2px 7px;
+    }
+    .xg__row {
+      height: 52px;
+    }
+    .xg__chip-by {
+      display: none;
+    }
+  }
+</style>

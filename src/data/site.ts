@@ -10,7 +10,8 @@ export const site = {
 
 export const nav = [
   { label: 'A2WP', href: '/a2wp/' },
-  // Learn and Writing are hidden until there is content: see src/pages/_learn and src/pages/_writing.
+  { label: 'Writing', href: '/writing/' },
+  // Learn is hidden until there is content: see src/pages/_learn.
   { label: 'Specs', href: '/specs/' },
   { label: 'Tools', href: '/tools/' },
 ];
