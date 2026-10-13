@@ -1,6 +1,6 @@
 /**
- * The A2WP diagram on /a2wp/: one sequence per operation, following the reference wallet
- * (github.com/shashimalcse/a2wp, docs/architecture.md and the e2e tests).
+ * The A2WP diagram on /a2wp/: one sequence per operation, as the agent-credential PoC runs it
+ * (github.com/shashimalcse/agent-vc-poc). Binding-neutral: the same over MCP or HTTPS.
  */
 
 /** Boxes and arrows in the diagram that a step lights up. */
@@ -40,15 +40,15 @@ export const flows: Flow[] = [
       },
       {
         text: 'The agent asks its wallet to accept the offer.',
-        sub: 'POST /operations · acquire · openid4vci',
+        sub: 'acquire · the offer link, unchanged',
         active: ['agent', 'a2wp'],
         msg: { edge: 'a2wp', label: 'acquire · offer', dir: 1 },
       },
       {
-        text: 'The wallet accepts and returns an operation id.',
-        sub: '202 Accepted · status: pending',
+        text: 'The wallet accepts and returns an operation to follow.',
+        sub: 'status: pending',
         active: ['wallet', 'a2wp'],
-        msg: { edge: 'a2wp', label: '202 · op_Qm7c…', dir: -1 },
+        msg: { edge: 'a2wp', label: 'op_Qm7c… · pending', dir: -1 },
       },
       { text: 'The wallet checks the issuer and credential type against its policy.', active: ['wallet'] },
       {
@@ -85,15 +85,15 @@ export const flows: Flow[] = [
       },
       {
         text: 'The agent passes the request to its wallet, unchanged.',
-        sub: 'POST /operations · present · openid4vp',
+        sub: 'present · the request link, unchanged',
         active: ['agent', 'a2wp'],
         msg: { edge: 'a2wp', label: 'present · request', dir: 1 },
       },
       {
-        text: 'The wallet accepts and returns an operation id.',
-        sub: '202 Accepted · status: pending',
+        text: 'The wallet accepts and returns an operation to follow.',
+        sub: 'status: pending',
         active: ['wallet', 'a2wp'],
-        msg: { edge: 'a2wp', label: '202 · op_4Tk9…', dir: -1 },
+        msg: { edge: 'a2wp', label: 'op_4Tk9… · pending', dir: -1 },
       },
       {
         text: "The wallet fetches the verifier's signed request itself and checks who sent it.",
@@ -110,7 +110,7 @@ export const flows: Flow[] = [
       },
       {
         text: 'The agent checks the status: completed. Only the verifier saw what was shared.',
-        sub: 'status: completed · no result',
+        sub: 'status: completed · verifier · next URL',
         active: ['agent', 'a2wp', 'wallet'],
         msg: { edge: 'a2wp', label: 'completed', dir: -1 },
       },

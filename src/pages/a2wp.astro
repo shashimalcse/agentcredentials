@@ -5,34 +5,28 @@ import CodeBlock from '../components/CodeBlock.astro';
 import { url } from '../lib/url';
 
 const draft = 'https://www.ietf.org/archive/id/draft-senarath-a2wp-00.html';
-const repo = 'https://github.com/shashimalcse/a2wp';
+const poc = 'https://github.com/shashimalcse/agent-vc-poc';
 
 const problems = [
   {
     hue: 'coral',
-    title: 'Secrets in the prompt',
-    body: 'Agents get a token, key or credential pasted into their context. The model can read it, log it, or be tricked into sending it somewhere else.',
-    sample: ['context:', '  api_key: sk_live_9f2…', '  id_card: { name, dob, … }'],
+    title: 'API keys say nothing',
+    body: 'Agents prove who they are with a separate API key for every service. A key does not say who made the agent, who runs it or whether anyone checked it, and anyone who copies one <b>becomes the agent</b>.',
+    sample: ['tickets.example: sk_live_9f2…', 'rail.example:    rk_7Hq0…', 'grocer.example:  gk_3Lm8…'],
   },
   {
     hue: 'violet',
-    title: 'The agent as the wallet',
-    body: 'Or the agent holds the keys and decides what to disclose. A prompt injection is then one step away from your private claims.',
-    sample: ['agent:', '  holds: private keys', '  decides: what to share'],
+    title: 'Agents mishandle credentials',
+    body: 'Given a credential offer link and no wallet, an agent we tested tried to open it like a web page. Put a credential or key in its context and the model can read it, log it, or be tricked into <b>sending it somewhere else</b>.',
+    sample: ['agent: open openid-credential-offer://…', '  ✕ not a web page', 'context: { sd_jwt: eyJhbGci… }'],
   },
   {
     hue: 'cobalt',
     title: 'Wallets have no agent interface',
-    body: "OpenID4VCI and OpenID4VP connect wallets to issuers and verifiers, and links or the browser's Digital Credentials API assume a person at the device. Nothing standard lets an agent <b>ask a wallet to act</b> for it, so every pairing is custom. Discovering a wallet and authenticating to it are missing too.",
-    sample: ['agent → wallet: acquire this?', 'agent → wallet: present this?', '  no standard way to ask'],
+    body: 'OpenID4VCI and OpenID4VP connect wallets to issuers and verifiers, but they assume a person at the device. Nothing standard lets an agent <b>ask a wallet to act</b> for it, so every pairing is custom.',
+    sample: ['agent → wallet: collect this?', 'agent → wallet: present this?', '  no standard way to ask'],
   },
 ];
-
-const headers = `POST /operations HTTP/1.1
-Host: wallet.example
-Authorization: DPoP eyJ0eXAiOiJhdCtqd3Qi…
-DPoP: eyJ0eXAiOiJkcG9wK2p3dCIs…
-Content-Type: application/json`;
 
 interface Sequence {
   id: string;
@@ -49,40 +43,28 @@ interface Sequence {
 const sequences: Sequence[] = [
   {
     id: 'issuance',
-    tab: 'Issuance',
+    tab: 'Acquire',
     title: 'Acquire a credential',
     steps: [
       {
-        title: 'The agent asks the wallet to accept an offer',
-        body: 'An issuer gave the agent a credential offer link. The agent passes it to the wallet and says why. The wallet replies at once with an operation to follow.',
+        title: 'The agent hands its wallet the offer',
+        body: 'An issuer gave the agent a credential offer link. The agent passes it to its wallet exactly as it got it and never opens it itself. The wallet replies at once with an operation to follow. Asking again with the same offer returns the same operation, so a retry cannot redeem it twice.',
         code: [
           {
-            title: 'Create an operation',
-            lang: 'http',
-            code: `${headers}
-
-{
+            title: 'Request',
+            lang: 'json',
+            code: `{
   "operation": "acquire",
-  "protocol": "openid4vci",
-  "request": {
-    "credential_offer_uri": "https://issuer.example/offers/9c1e"
-  },
-  "context": { "purpose": "Store my membership card" }
+  "offer": "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example%2Foffers%2F9c1e"
 }`,
           },
           {
-            title: 'Accepted',
-            lang: 'http',
-            code: `HTTP/1.1 202 Accepted
-Location: https://wallet.example/operations/op_Qm7cZt0sLe…
-Retry-After: 1
-
-{
+            title: 'Operation',
+            lang: 'json',
+            code: `{
   "operation_id": "op_Qm7cZt0sLe…",
   "operation": "acquire",
-  "protocol": "openid4vci",
-  "status": "pending",
-  "status_uri": "https://wallet.example/operations/op_Qm7cZt0sLe…"
+  "status": "pending"
 }`,
           },
         ],
@@ -91,20 +73,21 @@ Retry-After: 1
         title: 'The wallet runs OpenID4VCI',
         body: 'The wallet talks to the issuer itself. The agent never sees a token, a key or the credential.',
         checklist: [
-          "Loads the offer, then the issuer's and authorization server's metadata",
-          'Checks the issuer and credential type against policy',
+          "Loads the offer and the issuer's metadata",
+          'Checks the issuer and credential type against policy, before redeeming anything',
+          "Asks the user for a transaction code on the wallet's own page, never through the agent",
           'Redeems the pre-authorized code',
           'Creates a fresh holder key and proves it controls it',
-          "Verifies the SD-JWT VC: issuer key, type, and binding to the holder key",
-          'Commits, then stores the credential',
+          'Verifies the SD-JWT VC: issuer signature, chain, type and holder binding',
+          'Stores the credential with the agent that asked for it',
         ],
       },
       {
         title: 'The agent gets a handle',
-        body: 'When the operation completes, the agent gets an opaque handle and the properties its policy allows it to see. Never the credential itself.',
+        body: 'When the operation completes, the agent gets an opaque handle, the type and the issuer. Never the credential itself.',
         code: [
           {
-            title: 'Operation status',
+            title: 'Operation',
             lang: 'json',
             code: `{
   "operation_id": "op_Qm7cZt0sLe…",
@@ -113,10 +96,8 @@ Retry-After: 1
   "result": {
     "credentials": [{
       "credential_handle": "cred_Jx8vR1…",
-      "properties": {
-        "vct": "urn:example:a2wp:membership",
-        "iss": "https://issuer.example"
-      }
+      "vct": "https://registry.example/credentials/agent/v1",
+      "issuer": "https://registry.example"
     }]
   }
 }`,
@@ -127,42 +108,28 @@ Retry-After: 1
   },
   {
     id: 'presentation',
-    tab: 'Presentation',
+    tab: 'Present',
     title: 'Present a credential',
     steps: [
       {
-        title: 'The agent asks the wallet to answer a verifier',
-        body: "A verifier gave the agent a presentation request. The agent copies the verifier's request into request, unchanged, and says why.",
+        title: 'The agent hands its wallet the request',
+        body: "A site showed the agent a presentation request, for example as an Open in wallet link at sign-in. The agent passes the link to its wallet unchanged and gets an operation back.",
         code: [
           {
-            title: 'Create an operation',
-            lang: 'http',
-            code: `${headers}
-
-{
+            title: 'Request',
+            lang: 'json',
+            code: `{
   "operation": "present",
-  "protocol": "openid4vp",
-  "request": {
-    "client_id": "x509_san_dns:verifier.example",
-    "request_uri": "https://verifier.example/request/7f3a",
-    "request_uri_method": "post"
-  },
-  "context": { "purpose": "Prove membership" }
+  "request": "openid4vp://authorize?client_id=x509_san_dns%3Atickets.example&request_uri=https%3A%2F%2Ftickets.example%2Frequest%2F7f3a"
 }`,
           },
           {
-            title: 'Accepted',
-            lang: 'http',
-            code: `HTTP/1.1 202 Accepted
-Location: https://wallet.example/operations/op_4Tk9xQ2mVb…
-Retry-After: 1
-
-{
+            title: 'Operation',
+            lang: 'json',
+            code: `{
   "operation_id": "op_4Tk9xQ2mVb…",
   "operation": "present",
-  "protocol": "openid4vp",
-  "status": "pending",
-  "status_uri": "https://wallet.example/operations/op_4Tk9xQ2mVb…"
+  "status": "pending"
 }`,
           },
         ],
@@ -172,25 +139,47 @@ Retry-After: 1
         body: "Everything that touches the credential happens inside the wallet, out of the agent's reach.",
         checklist: [
           "Fetches the verifier's signed request and checks its certificate chain",
-          'Confirms the client_id and response URI agree',
-          'Runs the DCQL query against the credentials it holds',
+          "Checks that the certificate names the verifier's client_id",
+          "Runs the DCQL query against this agent's credentials only",
           'Applies policy: may this agent share these claims with this verifier?',
           'Builds a minimal disclosure plus a key-binding JWT for this verifier',
-          'Commits, then posts the response straight to the verifier',
+          'Posts the response straight to the verifier, not through the agent',
+        ],
+      },
+      {
+        title: 'Sometimes, a person decides',
+        body: "Whether to ask the user is the wallet's policy: for example a first visit to a site, more claims than last time, or an unfamiliar issuer. The agent passes the link to its user and waits on the operation until it finishes or the interaction expires. It never opens the link, and the wallet's page signs the user in rather than trusting whoever holds the link.",
+        code: [
+          {
+            title: 'Operation',
+            lang: 'json',
+            code: `{
+  "operation_id": "op_4Tk9xQ2mVb…",
+  "operation": "present",
+  "status": "interaction_required",
+  "interaction": {
+    "interaction_uri": "https://wallet.example/approve/ia_Acw…",
+    "expires_at": "2026-10-13T09:40:00Z"
+  }
+}`,
+          },
         ],
       },
       {
         title: 'The agent learns the outcome',
-        body: 'A presentation returns no result at all. What was disclosed went only to the verifier.',
+        body: 'The agent learns which verifier got the answer and where to go next, if the verifier said. What was disclosed went only to the verifier.',
         code: [
           {
-            title: 'Operation status',
+            title: 'Operation',
             lang: 'json',
             code: `{
   "operation_id": "op_4Tk9xQ2mVb…",
   "operation": "present",
   "status": "completed",
-  "completed_at": "2026-10-07T10:15:03Z"
+  "result": {
+    "verifier": "tickets.example",
+    "redirect_uri": "https://tickets.example/checkout/chk_MJnD/signed-in"
+  }
 }`,
           },
         ],
@@ -199,18 +188,33 @@ Retry-After: 1
   },
 ];
 
+const bindings = [
+  {
+    name: 'MCP',
+    body: 'The wallet is an MCP server and each operation is a tool, so any MCP-capable agent can use it with no extra code. This is the binding we ran with a real agent.',
+    lines: ['acquire_credential(offer)', 'present_credential(request)', 'get_operation(id, wait_seconds)', 'cancel_operation(id)'],
+  },
+  {
+    name: 'HTTPS',
+    body: 'The same operations as HTTP resources, as in draft -00, for agents and services that do not speak MCP.',
+    lines: ['POST /operations', 'GET  /operations/{id}'],
+  },
+];
+
 const uses = [
+  {
+    title: 'Agents with their own ID',
+    body: 'An agent carries a credential that says who it is and who runs it, from a registry that vouches for it, and signs in to any site that trusts the registry.',
+    href: '/writing/an-agent-with-its-own-credential/',
+    link: 'Read the story',
+  },
   {
     title: 'Personal assistants',
     body: 'Your agent proves things about you, such as your age or employer, without ever seeing the credential behind the proof.',
   },
   {
-    title: 'Agents over MCP',
-    body: 'Any MCP-capable agent can use a wallet through an adapter. The model only ever sees operation ids and statuses.',
-  },
-  {
     title: 'Enterprise agents',
-    body: "An organisation's agents acquire and present credentials under one wallet policy, with every operation tied to the agent and user that asked for it.",
+    body: "Each agent gets its own access to the wallet and its own credentials. People approve where policy says so, and one policy covers them all.",
   },
 ];
 ---
@@ -220,11 +224,13 @@ const uses = [
     <p class="chips">
       <span class="chip">Internet-Draft</span>
       <span class="chip chip--id">draft-senarath-a2wp-00</span>
+      <span class="chip">Heading for -01</span>
     </p>
     <h1>Agents use credentials. Wallets hold them.</h1>
     <p class="lede">
-      The Agent-to-Wallet Protocol (A2WP) lets an AI agent ask a credential wallet to acquire or present credentials,
-      while the wallet keeps the keys, the policy and the final say.
+      The Agent-to-Wallet Protocol (A2WP) lets an AI agent ask its wallet to collect or present credentials, its own
+      or ones it was given, while the wallet keeps the keys, the policy and the final say. It works over MCP or plain
+      HTTPS.
     </p>
     <div class="actions">
       <a href="#how" class="btn btn--primary">How A2WP works</a>
@@ -283,7 +289,7 @@ const uses = [
           <p class="eyebrow">Under the hood</p>
           <h2 class="h-section">Step by step.</h2>
         </div>
-        <p>Messages as the reference wallet sends them. Long values are shortened.</p>
+        <p>An operation looks the same over every binding. Each call is authenticated as one agent, and that agent's credentials and policy apply. Long values are shortened.</p>
       </div>
 
       <div class="seq-tabs" role="group" aria-label="Choose a flow" hidden data-seq-tabs>
@@ -349,6 +355,30 @@ const uses = [
     });
   </script>
 
+  <!-- Bindings -->
+  <section class="section section--tinted">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Bindings</p>
+          <h2 class="h-section">Same operations, two ways to call them.</h2>
+        </div>
+        <p>Access is per agent, for example with a bearer key or DPoP. Long-polling lets an agent wait for a person without giving up its task.</p>
+      </div>
+      <div class="bindings">
+        {
+          bindings.map((b) => (
+            <article>
+              <h3>{b.name}</h3>
+              <p>{b.body}</p>
+              <pre>{b.lines.join('\n')}</pre>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
   <!-- Where it fits -->
   <section class="section">
     <div class="container">
@@ -361,6 +391,11 @@ const uses = [
             <article>
               <h3>{u.title}</h3>
               <p>{u.body}</p>
+              {u.href && (
+                <a href={url(u.href)} class="uses__link">
+                  {u.link} <span aria-hidden="true">→</span>
+                </a>
+              )}
             </article>
           ))
         }
@@ -373,15 +408,15 @@ const uses = [
       <h2 class="h-section resources__title">Learn more</h2>
       <div class="link-list resources">
         <a href={draft}>
-          <span><b>The draft</b><span>draft-senarath-a2wp-00 on the IETF archive</span></span>
+          <span><b>The draft</b><span>draft-senarath-a2wp-00 on the IETF archive. This page shows where it is heading.</span></span>
           <span aria-hidden="true">→</span>
         </a>
-        <a href={repo}>
-          <span><b>Reference wallet</b><span>Go, standard library only, with an Agent SDK and an MCP adapter. Apache-2.0.</span></span>
+        <a href={poc}>
+          <span><b>Agent-credential PoC</b><span>A Kotlin wallet on the EUDI libraries, served over MCP, with walt.id's issuer and verifier and a real OpenClaw agent.</span></span>
           <span aria-hidden="true">→</span>
         </a>
-        <a href={`${repo}/blob/main/docs/conformance.md`}>
-          <span><b>Conformance notes</b><span>Gaps found while implementing the draft, feeding the next revision</span></span>
+        <a href={url('/writing/agent-credential-under-the-hood/')}>
+          <span><b>Under the hood</b><span>An agent signs in with its own credential, in eight interaction points</span></span>
           <span aria-hidden="true">→</span>
         </a>
         <a href={url('/specs/')}>
@@ -394,6 +429,48 @@ const uses = [
 </Base>
 
 <style>
+  .bindings {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .bindings article {
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+  }
+  .bindings h3 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .bindings p {
+    margin: 0 0 16px;
+    color: var(--text);
+  }
+  .bindings pre {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--code-bg);
+    color: #e6e6ea;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .uses__link {
+    display: inline-block;
+    margin-top: 10px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  @media (max-width: 760px) {
+    .bindings {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
   .head {
     position: relative;
     padding-top: 80px;
