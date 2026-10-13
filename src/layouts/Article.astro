@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import { site } from '../data/site';
+import { url } from '../lib/url';
 
 interface Props {
   title: string;
@@ -16,7 +17,7 @@ const { title, description, eyebrow, back, date, draft } = Astro.props;
 
 <Base title={title} description={description}>
   <article class="article">
-    <a href={back.href} class="article__back"><span aria-hidden="true">←</span> {back.label}</a>
+    <a href={back.href.startsWith('/') ? url(back.href) : back.href} class="article__back"><span aria-hidden="true">←</span> {back.label}</a>
     <p class="eyebrow article__eyebrow">
       {eyebrow}
       {draft && <span class="article__draft">Draft</span>}

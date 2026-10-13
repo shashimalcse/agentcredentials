@@ -1,4 +1,9 @@
 ---
+import { url } from '../lib/url';
+
+/** Internal links (starting with /) get the site's base path, so they work under /agentcredentials/ too. */
+const link = (href: string) => (href.startsWith('/') ? url(href) : href);
+
 interface Entry {
   href: string;
   tag: string;
@@ -23,7 +28,7 @@ const { entries, empty } = Astro.props;
     <ul class="entries">
       {entries.map((e) => (
         <li>
-          <a href={e.href}>
+          <a href={link(e.href)}>
             <span class="entries__tag">{e.tag}</span>
             <span class="entries__main">
               <span class="entries__title">
