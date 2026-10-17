@@ -4,7 +4,7 @@ import A2wpDemo from '../components/A2wpDemo.astro';
 import CodeBlock from '../components/CodeBlock.astro';
 import { url } from '../lib/url';
 
-const draft = 'https://www.ietf.org/archive/id/draft-senarath-a2wp-00.html';
+const draft = 'https://www.ietf.org/archive/id/draft-senarath-a2wp-01.html';
 const poc = 'https://github.com/shashimalcse/agent-vc-poc';
 
 const problems = [
@@ -48,22 +48,20 @@ const sequences: Sequence[] = [
     steps: [
       {
         title: 'The agent hands its wallet the offer',
-        body: 'An issuer gave the agent a credential offer link. The agent passes it to its wallet exactly as it got it and never opens it itself. The wallet replies at once with an operation to follow. Asking again with the same offer returns the same operation, so a retry cannot redeem it twice.',
+        body: 'An issuer gave the agent a credential offer link. The agent submits it to its wallet exactly as it got it and never opens it itself. The wallet works out that it is an offer and replies at once with an operation to follow. Submitting the same link again returns the same operation, so a retry cannot redeem it twice.',
         code: [
           {
-            title: 'Request',
+            title: 'Submit',
             lang: 'json',
             code: `{
-  "operation": "acquire",
-  "offer": "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example%2Foffers%2F9c1e"
+  "request": "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example%2Foffers%2F9c1e"
 }`,
           },
           {
             title: 'Operation',
             lang: 'json',
             code: `{
-  "operation_id": "op_Qm7cZt0sLe…",
-  "operation": "acquire",
+  "id": "op_Qm7cZt0sLe…",
   "status": "pending"
 }`,
           },
@@ -83,23 +81,15 @@ const sequences: Sequence[] = [
         ],
       },
       {
-        title: 'The agent gets a handle',
-        body: 'When the operation completes, the agent gets an opaque handle, the type and the issuer. Never the credential itself.',
+        title: 'The agent learns the outcome',
+        body: 'When the operation completes, that is all the agent learns. The credential stays in the wallet, ready for the next request. An issuance has no continuation, so the agent carries on with its task.',
         code: [
           {
             title: 'Operation',
             lang: 'json',
             code: `{
-  "operation_id": "op_Qm7cZt0sLe…",
-  "operation": "acquire",
-  "status": "completed",
-  "result": {
-    "credentials": [{
-      "credential_handle": "cred_Jx8vR1…",
-      "vct": "https://registry.example/credentials/agent/v1",
-      "issuer": "https://registry.example"
-    }]
-  }
+  "id": "op_Qm7cZt0sLe…",
+  "status": "completed"
 }`,
           },
         ],
@@ -113,13 +103,12 @@ const sequences: Sequence[] = [
     steps: [
       {
         title: 'The agent hands its wallet the request',
-        body: "A site showed the agent a presentation request, for example as an Open in wallet link at sign-in. The agent passes the link to its wallet unchanged and gets an operation back.",
+        body: "A site showed the agent a presentation request, for example as an Open in wallet link at sign-in. The agent submits the link to its wallet unchanged, the same call it uses for offers, and gets an operation back.",
         code: [
           {
-            title: 'Request',
+            title: 'Submit',
             lang: 'json',
             code: `{
-  "operation": "present",
   "request": "openid4vp://authorize?client_id=x509_san_dns%3Atickets.example&request_uri=https%3A%2F%2Ftickets.example%2Frequest%2F7f3a"
 }`,
           },
@@ -127,8 +116,7 @@ const sequences: Sequence[] = [
             title: 'Operation',
             lang: 'json',
             code: `{
-  "operation_id": "op_4Tk9xQ2mVb…",
-  "operation": "present",
+  "id": "op_4Tk9xQ2mVb…",
   "status": "pending"
 }`,
           },
@@ -148,17 +136,16 @@ const sequences: Sequence[] = [
       },
       {
         title: 'Sometimes, a person decides',
-        body: "Whether to ask the user is the wallet's policy: for example a first visit to a site, more claims than last time, or an unfamiliar issuer. The agent passes the link to its user and waits on the operation until it finishes or the interaction expires. It never opens the link, and the wallet's page signs the user in rather than trusting whoever holds the link.",
+        body: "Whether to ask the user is the wallet's policy: for example a first visit to a site, more claims than last time, or an unfamiliar issuer. The operation stays pending and carries an interaction. The agent passes the link to its user and keeps checking the operation until it finishes. It never opens the link, and the wallet's page signs the user in rather than trusting whoever holds the link.",
         code: [
           {
             title: 'Operation',
             lang: 'json',
             code: `{
-  "operation_id": "op_4Tk9xQ2mVb…",
-  "operation": "present",
-  "status": "interaction_required",
+  "id": "op_4Tk9xQ2mVb…",
+  "status": "pending",
   "interaction": {
-    "interaction_uri": "https://wallet.example/approve/ia_Acw…",
+    "uri": "https://wallet.example/approve/ia_Acw…",
     "expires_at": "2026-10-13T09:40:00Z"
   }
 }`,
@@ -166,20 +153,16 @@ const sequences: Sequence[] = [
         ],
       },
       {
-        title: 'The agent learns the outcome',
-        body: 'The agent learns which verifier got the answer and where to go next, if the verifier said. What was disclosed went only to the verifier.',
+        title: 'The agent picks up where it left off',
+        body: "The verifier answers the wallet with a continuation, and the wallet passes it to the agent unchanged. The agent opens it in the browser session where it found the request, and the site carries on with the checkout. What was disclosed went only to the verifier.",
         code: [
           {
             title: 'Operation',
             lang: 'json',
             code: `{
-  "operation_id": "op_4Tk9xQ2mVb…",
-  "operation": "present",
+  "id": "op_4Tk9xQ2mVb…",
   "status": "completed",
-  "result": {
-    "verifier": "tickets.example",
-    "redirect_uri": "https://tickets.example/checkout/chk_MJnD/signed-in"
-  }
+  "continuation": "https://tickets.example/checkout/chk_MJnD?response_code=0915…"
 }`,
           },
         ],
@@ -191,13 +174,13 @@ const sequences: Sequence[] = [
 const bindings = [
   {
     name: 'MCP',
-    body: 'The wallet is an MCP server and each operation is a tool, so any MCP-capable agent can use it with no extra code. This is the binding we ran with a real agent.',
-    lines: ['acquire_credential(offer)', 'present_credential(request)', 'get_operation(id, wait_seconds)', 'cancel_operation(id)'],
+    body: 'The wallet is an MCP server and each call is a tool, so any MCP-capable agent can use it with no extra code. The PoC ran an earlier version of this with a real agent.',
+    lines: ['submit(request)', 'get(id, wait_seconds)', 'cancel(id)'],
   },
   {
     name: 'HTTPS',
-    body: 'The same operations as HTTP resources, as in draft -00, for agents and services that do not speak MCP.',
-    lines: ['POST /operations', 'GET  /operations/{id}'],
+    body: 'The same three calls as HTTP resources, for agents and services that do not speak MCP.',
+    lines: ['POST   /operations', 'GET    /operations/{id}', 'DELETE /operations/{id}'],
   },
 ];
 
@@ -210,7 +193,7 @@ const uses = [
   },
   {
     title: 'Personal assistants',
-    body: 'Your agent proves things about you, such as your age or employer, without ever seeing the credential behind the proof.',
+    body: 'Your agent proves things about you, such as your age, with a credential you delegate from your own wallet for that one presentation. It never sees the credential behind the proof.',
   },
   {
     title: 'Enterprise agents',
@@ -223,14 +206,13 @@ const uses = [
   <section slot="top" class="container head">
     <p class="chips">
       <span class="chip">Internet-Draft</span>
-      <span class="chip chip--id">draft-senarath-a2wp-00</span>
-      <span class="chip">Heading for -01</span>
+      <span class="chip chip--id">draft-senarath-a2wp-01</span>
     </p>
     <h1>Agents use credentials. Wallets hold them.</h1>
     <p class="lede">
       The Agent-to-Wallet Protocol (A2WP) lets an AI agent ask its wallet to collect or present credentials, its own
-      or ones it was given, while the wallet keeps the keys, the policy and the final say. It works over MCP or plain
-      HTTPS.
+      or ones it was given, while the wallet keeps the keys, the policy and the final say. It is independent of the
+      transport, so it works over MCP, HTTPS or anything else.
     </p>
     <div class="actions">
       <a href="#how" class="btn btn--primary">How A2WP works</a>
@@ -275,7 +257,7 @@ const uses = [
           <p class="eyebrow">How A2WP works</p>
           <h2 class="h-section">Two operations, one rule.</h2>
         </div>
-        <p>The agent can ask the wallet to acquire a credential or to present one. Either way, the wallet does the work and the agent only learns the outcome.</p>
+        <p>The agent hands its wallet an offer or a request, exactly as it got it. The wallet works out which, does the work, and the agent only learns the outcome.</p>
       </div>
       <A2wpDemo />
     </div>
@@ -361,9 +343,9 @@ const uses = [
       <div class="section-head">
         <div>
           <p class="eyebrow">Bindings</p>
-          <h2 class="h-section">Same operations, two ways to call them.</h2>
+          <h2 class="h-section">The draft defines the calls, not the transport.</h2>
         </div>
-        <p>Access is per agent, for example with a bearer key or DPoP. Long-polling lets an agent wait for a person without giving up its task.</p>
+        <p>A binding carries the three calls and decides how the wallet authenticates each agent, for example with a bearer key or DPoP. These two are sketches; neither is part of -01.</p>
       </div>
       <div class="bindings">
         {
@@ -408,11 +390,11 @@ const uses = [
       <h2 class="h-section resources__title">Learn more</h2>
       <div class="link-list resources">
         <a href={draft}>
-          <span><b>The draft</b><span>draft-senarath-a2wp-00 on the IETF archive. This page shows where it is heading.</span></span>
+          <span><b>The draft</b><span>draft-senarath-a2wp-01 on the IETF archive</span></span>
           <span aria-hidden="true">→</span>
         </a>
         <a href={poc}>
-          <span><b>Agent-credential PoC</b><span>A Kotlin wallet on the EUDI libraries, served over MCP, with walt.id's issuer and verifier and a real OpenClaw agent.</span></span>
+          <span><b>Agent-credential PoC</b><span>A Kotlin wallet on the EUDI libraries, served over MCP, with walt.id's issuer and verifier and a real OpenClaw agent. It was built against -00.</span></span>
           <span aria-hidden="true">→</span>
         </a>
         <a href={url('/writing/agent-credential-under-the-hood/')}>

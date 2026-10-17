@@ -89,7 +89,7 @@ export const specGroups: SpecGroup[] = [
         name: 'Agent-to-Wallet Protocol (A2WP)',
         summary: 'Lets an agent ask a wallet to acquire and present credentials without holding them.',
         body: 'IETF draft',
-        href: 'https://www.ietf.org/archive/id/draft-senarath-a2wp-00.html',
+        href: 'https://www.ietf.org/archive/id/draft-senarath-a2wp-01.html',
       },
     ],
   },

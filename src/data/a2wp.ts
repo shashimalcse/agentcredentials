@@ -1,6 +1,6 @@
 /**
- * The A2WP diagram on /a2wp/: one sequence per operation, as the agent-credential PoC runs it
- * (github.com/shashimalcse/agent-vc-poc). Binding-neutral: the same over MCP or HTTPS.
+ * The A2WP diagram on /a2wp/: one sequence per operation, as draft-senarath-a2wp-01 defines it.
+ * Binding-neutral: the draft defines the calls, not the transport.
  */
 
 /** Boxes and arrows in the diagram that a step lights up. */
@@ -39,10 +39,10 @@ export const flows: Flow[] = [
         msg: { edge: 'offer', label: 'credential offer', dir: -1 },
       },
       {
-        text: 'The agent asks its wallet to accept the offer.',
-        sub: 'acquire · the offer link, unchanged',
+        text: 'The agent submits the offer link to its wallet, unchanged.',
+        sub: 'submit · the wallet works out it is an offer',
         active: ['agent', 'a2wp'],
-        msg: { edge: 'a2wp', label: 'acquire · offer', dir: 1 },
+        msg: { edge: 'a2wp', label: 'submit · offer link', dir: 1 },
       },
       {
         text: 'The wallet accepts and returns an operation to follow.',
@@ -65,10 +65,10 @@ export const flows: Flow[] = [
         fill: true,
       },
       {
-        text: 'The agent checks the status and gets a handle, never the credential.',
-        sub: 'status: completed · credential_handle',
+        text: 'The agent checks the status: completed. It never sees the credential.',
+        sub: 'status: completed',
         active: ['agent', 'a2wp', 'wallet'],
-        msg: { edge: 'a2wp', label: 'completed · cred_Jx8v…', dir: -1 },
+        msg: { edge: 'a2wp', label: 'completed', dir: -1 },
       },
     ],
   },
@@ -84,10 +84,10 @@ export const flows: Flow[] = [
         msg: { edge: 'req', label: 'presentation request', dir: -1 },
       },
       {
-        text: 'The agent passes the request to its wallet, unchanged.',
-        sub: 'present · the request link, unchanged',
+        text: 'The agent submits the request link to its wallet, unchanged.',
+        sub: 'submit · the wallet works out it is a request',
         active: ['agent', 'a2wp'],
-        msg: { edge: 'a2wp', label: 'present · request', dir: 1 },
+        msg: { edge: 'a2wp', label: 'submit · request link', dir: 1 },
       },
       {
         text: 'The wallet accepts and returns an operation to follow.',
@@ -109,10 +109,16 @@ export const flows: Flow[] = [
         msg: { edge: 'vp', label: 'org · address.country', dir: 1 },
       },
       {
-        text: 'The agent checks the status: completed. Only the verifier saw what was shared.',
-        sub: 'status: completed · verifier · next URL',
+        text: "The agent checks the status: completed, with the verifier's continuation.",
+        sub: 'status: completed · continuation',
         active: ['agent', 'a2wp', 'wallet'],
-        msg: { edge: 'a2wp', label: 'completed', dir: -1 },
+        msg: { edge: 'a2wp', label: 'completed · continuation', dir: -1 },
+      },
+      {
+        text: 'The agent opens the continuation where it found the request. Only the verifier saw what was shared.',
+        sub: 'the verifier resumes the same session',
+        active: ['agent', 'req', 'verifier'],
+        msg: { edge: 'req', label: 'continuation', dir: 1 },
       },
     ],
   },
