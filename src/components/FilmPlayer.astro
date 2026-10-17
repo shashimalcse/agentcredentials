@@ -3,10 +3,18 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { url } from '../lib/url';
 
-// The promo film, exported from the motion artifact and prepared with scripts/prepare-film.sh.
-// Until public/video/agent-credentials.mp4 exists, the component renders nothing.
-const file = 'video/agent-credentials.mp4';
-const poster = 'video/agent-credentials-poster.jpg';
+// By default the promo film, exported from the motion artifact and prepared with scripts/prepare-film.sh.
+// Pass file, poster and label to show another recording. Renders nothing until the file exists.
+interface Props {
+  file?: string;
+  poster?: string;
+  label?: string;
+}
+const {
+  file = 'video/agent-credentials.mp4',
+  poster = 'video/agent-credentials-poster.jpg',
+  label = 'Film: Ada registers her agent once, and the agent signs in on its own at Lantern Tickets and two other sites with the same credential.',
+} = Astro.props;
 const hasFilm = existsSync(join(process.cwd(), 'public', file));
 const hasPoster = existsSync(join(process.cwd(), 'public', poster));
 ---
@@ -22,7 +30,7 @@ const hasPoster = existsSync(join(process.cwd(), 'public', poster));
         width="1920"
         height="1080"
         poster={hasPoster ? url(`/${poster}`) : undefined}
-        aria-label="Film: Ada registers her agent once, and the agent signs in on its own at Lantern Tickets and two other sites with the same credential."
+        aria-label={label}
       >
         <source src={url(`/${file}`)} type="video/mp4" />
       </video>
