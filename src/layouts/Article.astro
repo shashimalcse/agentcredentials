@@ -13,9 +13,27 @@ interface Props {
 }
 
 const { title, description, eyebrow, back, date, draft } = Astro.props;
+
+const home = new URL(url('/'), Astro.site).href;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+// Explainers are technical articles; essays and notes are blog posts.
+const article = {
+  '@type': eyebrow === 'Explainer' ? 'TechArticle' : 'BlogPosting',
+  '@id': `${canonical}#article`,
+  headline: title,
+  description,
+  url: canonical,
+  mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  isPartOf: { '@id': `${home}#website` },
+  author: { '@id': `${home}#author` },
+  publisher: { '@id': `${home}#author` },
+  image: new URL(url(site.image), Astro.site).href,
+  inLanguage: 'en',
+  ...(date && { datePublished: date.toISOString(), dateModified: date.toISOString() }),
+};
 ---
 
-<Base title={title} description={description}>
+<Base title={title} description={description} type="article" published={date} schema={[article]}>
   <article class="article">
     <a href={back.href.startsWith('/') ? url(back.href) : back.href} class="article__back"><span aria-hidden="true">←</span> {back.label}</a>
     <p class="eyebrow article__eyebrow">

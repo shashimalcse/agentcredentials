@@ -14,10 +14,8 @@ npx astro check    # type-check
 
 ## Writing content
 
-Learn and Writing are switched off until there is content. To turn them back on, rename
-`src/pages/_learn` → `learn`, `src/pages/_writing` → `writing` and `src/pages/_rss.xml.ts` →
-`rss.xml.ts`, then add them back to `nav` in `src/data/site.ts` (and the RSS link in the
-footer and `Base.astro`).
+Learn is switched off until there is content. To turn it on, rename `src/pages/_learn` →
+`learn` and add it back to `nav` in `src/data/site.ts`.
 
 
 - Essays and notes: `src/content/writing/<slug>.mdx`
@@ -50,4 +48,10 @@ Pushing to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. Th
 served at https://agentcredentials.dev/ (custom domain set under the repo's Settings → Pages).
 
 Internal links go through `url()` in `src/lib/url.ts`, so the base path comes from config.
+
+Search and AI discovery: `Base.astro` writes the Open Graph and Twitter tags and a JSON-LD graph
+(site, author, page); pages add their own nodes through its `schema` prop (`Article.astro` adds a
+`TechArticle` or `BlogPosting`). `robots.txt`, `llms.txt` and `rss.xml` are generated from
+`src/pages/*.ts`. The default share image is `public/og.png` (1200x630); add the author's other
+profiles to `authorSameAs` in `src/data/site.ts`.
 Setting `PUBLIC_NOINDEX=true` at build time adds a robots `noindex` tag to every page.

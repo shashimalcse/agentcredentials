@@ -1,8 +1,24 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/url';
+
+const description = 'Decode an SD-JWT and see which claims it discloses. Runs entirely in your browser.';
+const home = new URL(url('/'), Astro.site).href;
+const app = {
+  '@type': 'WebApplication',
+  '@id': `${new URL(Astro.url.pathname, Astro.site).href}#app`,
+  name: 'SD-JWT decoder',
+  description,
+  url: new URL(Astro.url.pathname, Astro.site).href,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any (runs in the browser)',
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  author: { '@id': `${home}#author` },
+};
 ---
 
-<Base title="SD-JWT decoder" description="Decode an SD-JWT and see which claims it discloses. Runs entirely in your browser.">
+<Base title="SD-JWT decoder" description={description} schema={[app]}>
   <div slot="top" class="container head">
     <div>
       <p class="eyebrow">Tool</p>

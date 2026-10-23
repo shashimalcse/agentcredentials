@@ -6,6 +6,11 @@ export const site = {
   author: 'Thilina Senarath',
   authorUrl: 'https://github.com/shashimalcse',
   github: 'https://github.com/shashimalcse',
+  /** The author's other profiles, for structured data. */
+  authorSameAs: ['https://github.com/shashimalcse'],
+  /** Default share image (1200x630), in public/. */
+  image: '/og.png',
+  imageAlt: 'Agent Credentials: verifiable credentials for AI agents.',
 };
 
 export const nav = [
