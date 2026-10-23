@@ -46,12 +46,8 @@ The demo ships fully played out, so it reads correctly without JavaScript and wi
 
 ## Deploying
 
-Pushing to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. For now the site
-is served at https://shashimalcse.github.io/agentcredentials/ with a `noindex` tag.
+Pushing to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. The site is
+served at https://agentcredentials.dev/ (custom domain set under the repo's Settings → Pages).
 
 Internal links go through `url()` in `src/lib/url.ts`, so the base path comes from config.
-
-To move to the custom domain:
-
-1. Point the domain's DNS at GitHub Pages and set it under the repo's Settings → Pages.
-2. In the workflow, set `SITE_URL` to the domain, `BASE_PATH` to `/`, and remove `PUBLIC_NOINDEX`.
+Setting `PUBLIC_NOINDEX=true` at build time adds a robots `noindex` tag to every page.

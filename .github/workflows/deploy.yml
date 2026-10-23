@@ -18,11 +18,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # Until the custom domain is live: served under /agentcredentials/ and kept out of search engines.
-      # At launch, set SITE_URL to the domain, BASE_PATH to "/" and remove PUBLIC_NOINDEX.
-      SITE_URL: https://shashimalcse.github.io
-      BASE_PATH: /agentcredentials
-      PUBLIC_NOINDEX: 'true'
+      SITE_URL: https://agentcredentials.dev
+      BASE_PATH: /
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
