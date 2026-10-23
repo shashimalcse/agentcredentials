@@ -7,7 +7,7 @@ export const site = {
   authorUrl: 'https://github.com/shashimalcse',
   github: 'https://github.com/shashimalcse',
   /** The author's other profiles, for structured data. */
-  authorSameAs: ['https://github.com/shashimalcse'],
+  authorSameAs: ['https://github.com/shashimalcse', 'https://www.linkedin.com/in/shashimal97/'],
   /** Default share image (1200x630), in public/. */
   image: '/og.png',
   imageAlt: 'Agent Credentials: verifiable credentials for AI agents.',
