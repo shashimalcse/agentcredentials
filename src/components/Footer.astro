@@ -6,11 +6,12 @@ import { url } from '../lib/url';
 <footer class="footer">
   <div class="container footer__inner">
     <p>
-      By <a href={site.authorUrl} class="footer__author">{site.author}</a>. Writing on verifiable credentials for AI agents.
+      By <a href={site.linkedin} rel="me" class="footer__author">{site.author}</a>. Writing on verifiable credentials for AI agents.
       Opinions are my own.
     </p>
     <nav aria-label="Footer" class="footer__nav">
-      <a href={site.github}>GitHub</a>
+      <a href={site.github} rel="me">GitHub</a>
+      <a href={site.linkedin} rel="me">LinkedIn</a>
       <a href={url('/a2wp/')}>A2WP</a>
       <a href={url('/specs/')}>Specs</a>
       <a href={url('/tools/')}>Tools</a>

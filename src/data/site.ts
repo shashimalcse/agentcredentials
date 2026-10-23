@@ -6,6 +6,7 @@ export const site = {
   author: 'Thilina Senarath',
   authorUrl: 'https://github.com/shashimalcse',
   github: 'https://github.com/shashimalcse',
+  linkedin: 'https://www.linkedin.com/in/shashimal97/',
   /** The author's other profiles, for structured data. */
   authorSameAs: ['https://github.com/shashimalcse', 'https://www.linkedin.com/in/shashimal97/'],
   /** Default share image (1200x630), in public/. */
